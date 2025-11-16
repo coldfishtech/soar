@@ -294,22 +294,10 @@
   <img id="titleImage" src="soar_title.png" alt="SSOAR Title" />
     <div id="musicbar" aria-label="Music Player">
   <span id="music-title" aria-live="polite"></span>
-      <button id="btn-music-mute" class="mute-btn" aria-label="Mute Music" title="Mute Music" aria-pressed="false">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path class="spk" fill="#000" d="M3 9v6h4l5 4V5L7 9H3z"/>
-          <path class="waves" d="M14 9c1.5 1.5 1.5 4.5 0 6m2.5-8.5c3 3 3 8 0 11" stroke="#000" stroke-width="2" fill="none"/>
-          <path class="mute-x" d="M16 6 L22 12 M22 6 L16 12" stroke="#000" stroke-width="2" style="display:none"/>
-        </svg>
-      </button>
+      <button id="btn-music-mute" class="mute-btn" aria-label="Music" title="Music" aria-pressed="false">ON</button>
   <span class="divider"></span>
   <span class="musicbar-label">SFX</span>
-      <button id="btn-sfx-mute" class="mute-btn" aria-label="Mute SFX" title="Mute SFX" aria-pressed="false">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path class="spk" fill="#000" d="M3 9v6h4l5 4V5L7 9H3z"/>
-          <path class="waves" d="M14 9c1.5 1.5 1.5 4.5 0 6m2.5-8.5c3 3 3 8 0 11" stroke="#000" stroke-width="2" fill="none"/>
-          <path class="mute-x" d="M16 6 L22 12 M22 6 L16 12" stroke="#000" stroke-width="2" style="display:none"/>
-        </svg>
-      </button>
+      <button id="btn-sfx-mute" class="mute-btn" aria-label="SFX" title="SFX" aria-pressed="false">ON</button>
       <!-- hidden SoundCloud widget iframe used for playback/control -->
       <iframe
         id="sc-widget"
@@ -333,23 +321,11 @@
     <div class="menu-hr"></div>
     <div class="menu-row">
       <span class="row-label">Music</span>
-      <button id="sm-btn-music-mute" class="mute-btn" aria-label="Mute Music" title="Mute Music" aria-pressed="false" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path class="spk" fill="#000" d="M3 9v6h4l5 4V5L7 9H3z"/>
-          <path class="waves" d="M14 9c1.5 1.5 1.5 4.5 0 6m2.5-8.5c3 3 3 8 0 11" stroke="#000" stroke-width="2" fill="none"/>
-          <path class="mute-x" d="M16 6 L22 12 M22 6 L16 12" stroke="#000" stroke-width="2" style="display:none"/>
-        </svg>
-      </button>
+      <button id="sm-btn-music-mute" class="mute-btn" aria-label="Music" title="Music" aria-pressed="false" type="button">ON</button>
     </div>
     <div class="menu-row">
       <span class="row-label">SFX</span>
-      <button id="sm-btn-sfx-mute" class="mute-btn" aria-label="Mute SFX" title="Mute SFX" aria-pressed="false" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path class="spk" fill="#000" d="M3 9v6h4l5 4V5L7 9H3z"/>
-          <path class="waves" d="M14 9c1.5 1.5 1.5 4.5 0 6m2.5-8.5c3 3 3 8 0 11" stroke="#000" stroke-width="2" fill="none"/>
-          <path class="mute-x" d="M16 6 L22 12 M22 6 L16 12" stroke="#000" stroke-width="2" style="display:none"/>
-        </svg>
-      </button>
+      <button id="sm-btn-sfx-mute" class="mute-btn" aria-label="SFX" title="SFX" aria-pressed="false" type="button">ON</button>
     </div>
     <div class="menu-actions">
       <button id="btn-play" class="menu-btn" type="button">Play Game</button>
@@ -530,13 +506,13 @@
     }
     function updateSpeakerButtonVisual(btnEl, muted) {
       if (!btnEl) return;
+      // muted => show OFF; unmuted => ON
+      // For SFX we treat enabled as ON, disabled as OFF.
+      const on = !muted;
+      btnEl.textContent = on ? 'ON' : 'OFF';
       btnEl.setAttribute('aria-pressed', muted ? 'true' : 'false');
-      const waves = btnEl.querySelector('.waves');
-      const x = btnEl.querySelector('.mute-x');
-      if (waves) waves.style.display = muted ? 'none' : 'block';
-      if (x) x.style.display = muted ? 'block' : 'none';
-      btnEl.title = muted ? 'Unmute' : 'Mute';
-      btnEl.setAttribute('aria-label', btnEl.title);
+      btnEl.title = on ? 'On' : 'Off';
+      btnEl.setAttribute('aria-label', btnEl.title + ' state');
     }
     function updateMusicMuteUI() {
       updateSpeakerButtonVisual(btnMusicMute, musicMuted);
