@@ -178,8 +178,8 @@
   #titleImage { width: 100px; max-width: 20vw; margin-bottom: 0; }
       /* Right-align music player so its right edge aligns with canvas right edge */
   #musicbar { margin-left: auto; margin-bottom: 0; box-sizing: border-box; padding: 0 0; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
-  /* place soar link full-width below controls on mobile */
-  #musicbar .topbar-soar-link { order: 99; width: 100%; justify-content: center; margin-left: 0; margin-top: 8px; }
+  /* place soar link below controls on mobile (icon-sized only clickable) */
+  #musicbar .topbar-soar-link { order: 99; width: 100%; justify-content: right; margin-left: 0; margin-right: 8px; margin-top: 8px; }
       /* Increase separation between arrow group and jump button */
       #controls { gap: 80px; }
       /* Canvas width will be set via JS; fallback respects body padding */
