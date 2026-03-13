@@ -9,6 +9,9 @@
     html {
       background: #f6f8fb; /* subtle cool off-white */
     }
+    :root {
+      --debug-widget-height: 166px;
+    }
     body {
       margin: 0;
       background: #f6f8fb; /* subtle cool off-white */
@@ -44,6 +47,21 @@
       align-items: center;
       gap: 8px;
     }
+    #sc-widget-debug-wrap {
+      width: 100%;
+      display: none;
+      justify-content: center;
+      padding: 8px 0 0;
+      box-sizing: border-box;
+    }
+    #sc-widget-debug-wrap.is-visible {
+      display: flex;
+    }
+    #sc-widget-debug-wrap iframe {
+      width: min(640px, calc(100vw - 24px));
+      height: var(--debug-widget-height);
+      border: 0;
+    }
   /* music bar (under title on desktop; next to it on mobile) */
     #musicbar {
       width: 400px;
@@ -58,8 +76,51 @@
     }
     /* inline soar.wav link style for topbar (reuse menu-note styling but tighter) */
   #musicbar .topbar-soar-link { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; margin-left: auto; text-decoration: none; }
-  #musicbar .topbar-soar-link svg { width: 12px; height: 12px; display: block; fill: #000; }
+  #musicbar .topbar-soar-link svg { width: 15px; height: 15px; display: block; fill: #000; }
   #musicbar .topbar-soar-link:active { filter: brightness(0.85); }
+    .music-nowplaying {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      min-width: 0;
+      flex: 0 1 auto;
+    }
+    .playback-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex: 0 0 auto;
+    }
+    .transport-btn {
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      color: #222;
+      cursor: pointer;
+    }
+    .transport-btn svg {
+      width: 15px;
+      height: 15px;
+      display: block;
+      fill: currentColor;
+    }
+    .transport-btn:active { filter: brightness(0.85); }
+    .playback-controls .mute-btn {
+      min-width: 22px;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      color: #222;
+    }
+    .playback-controls .mute-btn svg {
+      width: 15px;
+      height: 15px;
+      display: block;
+      fill: currentColor;
+    }
     /* Music/SFX topbar UI */
     /* Override the bold parent for specific elements to be Arial regular 9pt with -10 tracking (~ -0.01em) */
     #music-title,
@@ -70,7 +131,35 @@
       letter-spacing: -0.01em;   /* -10 tracking */
       color: #222;
     }
-  #music-title { max-width: 40vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-decoration: underline; cursor: pointer; }
+  #music-title {
+      width: auto;
+      min-width: 0;
+      flex: 0 1 auto;
+      max-width: 150px;
+      overflow: hidden;
+      white-space: nowrap;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+  .music-title-track {
+      display: inline-flex;
+      align-items: center;
+      min-width: max-content;
+      gap: 24px;
+      will-change: transform;
+      transform: translateX(0);
+    }
+  .music-title-track.is-scrolling {
+      animation: musicMarquee var(--marquee-duration, 12s) linear infinite;
+    }
+  .music-title-segment {
+      display: inline-block;
+    }
+  @keyframes musicMarquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(calc(-1 * var(--marquee-shift, 0px))); }
+    }
   .mute-btn { 
       min-width: 34px; 
       height: 24px; 
@@ -178,6 +267,8 @@
   #titleImage { width: 100px; max-width: 20vw; margin-bottom: 0; }
       /* Right-align music player so its right edge aligns with canvas right edge */
   #musicbar { margin-left: auto; margin-bottom: 0; box-sizing: border-box; padding: 0 0; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+  .music-nowplaying { flex: 1 1 100%; order: 0; }
+  .playback-controls { gap: 2px; }
   /* place soar link below controls on mobile (icon-sized only clickable) */
   #musicbar .topbar-soar-link { order: 99; width: 100%; justify-content: right; margin-left: 0; margin-right: 8px; margin-top: 8px; }
       /* Increase separation between arrow group and jump button */
@@ -320,14 +411,35 @@
   </style>
 </head>
 <body>
+  <div id="sc-widget-debug-wrap" aria-hidden="true"></div>
   <div id="topbar">
   <img id="titleImage" src="soar_title.png" alt="SSOAR Title" />
     <div id="musicbar" aria-label="Music Player">
-  <a id="music-title" aria-live="polite" href="#" target="_blank" rel="noopener"></a>
-      <button id="btn-music-mute" class="mute-btn" aria-label="Music" title="Music" aria-pressed="false">ON</button>
-  <span class="divider"></span>
-  <span class="musicbar-label">SFX</span>
-      <button id="btn-sfx-mute" class="mute-btn" aria-label="SFX" title="SFX" aria-pressed="false">ON</button>
+      <div class="music-nowplaying">
+    <span id="music-title" aria-live="polite">
+      <span id="music-title-track" class="music-title-track">
+        <span id="music-title-primary" class="music-title-segment"></span>
+        <span id="music-title-duplicate" class="music-title-segment" aria-hidden="true"></span>
+      </span>
+    </span>
+        <div class="playback-controls" aria-label="Playback Controls">
+          <button id="btn-prev-track" class="transport-btn" aria-label="Previous track" title="Previous track" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M7 6h2v12H7zM18 6v12l-8-6z"/>
+            </svg>
+          </button>
+          <button id="btn-next-track" class="transport-btn" aria-label="Next track" title="Next track" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M15 6h2v12h-2zM7 6l8 6-8 6z"/>
+            </svg>
+          </button>
+          <button id="btn-music-mute" class="mute-btn" aria-label="Music on" title="Music on" aria-pressed="false" type="button">
+            <svg viewBox="0 0 28 24" aria-hidden="true" focusable="false">
+              <path d="M3 9v6h5l6 5V4L8 9H3zm14.5 3c0-2.06-1.17-3.83-2.88-4.7v9.4A5.2 5.2 0 0 0 17.5 12zm3.5 0c0-3.72-2.13-6.92-5.25-8.47v2.4A7.45 7.45 0 0 1 18.7 12a7.45 7.45 0 0 1-2.95 6.07v2.4C18.87 18.92 21 15.72 21 12z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
       <a class="topbar-soar-link" href="https://www.instagram.com/soar.wav/" target="_blank" rel="noopener" aria-label="Instagram: soar.wav">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path d="M7 2C4.24 2 2 4.24 2 7v10c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V7c0-2.76-2.24-5-5-5H7zm0 2h10c1.66 0 3 1.34 3 3v10c0 1.66-1.34 3-3 3H7c-1.66 0-3-1.34-3-3V7c0-1.66 1.34-3 3-3zm11 1a1 1 0 100 2 1 1 0 000-2zM12 7a5 5 0 100 10 5 5 0 000-10zm0 2a3 3 0 110 6 3 3 0 010-6z"/>
@@ -340,7 +452,7 @@
         scrolling="no"
         frameborder="no"
         style="position:absolute; left:-9999px; width:0; height:0; border:0;"
-        src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/user-385939006/01-ddd&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&visual=false">
+        src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/soundcloud%3Aplaylists%3A2032393965%3Fsecret_token%3Ds-iyakQjs72iE&color=%23ff5500&auto_play=false&hide_related=false&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=true">
       </iframe>
     </div>
   </div>
@@ -359,11 +471,11 @@
     <div class="menu-hr"></div>
     <div class="menu-row">
       <span class="row-label">Music</span>
-      <button id="sm-btn-music-mute" class="mute-btn" aria-label="Music" title="Music" aria-pressed="false" type="button">ON</button>
-    </div>
-    <div class="menu-row">
-      <span class="row-label">SFX</span>
-      <button id="sm-btn-sfx-mute" class="mute-btn" aria-label="SFX" title="SFX" aria-pressed="false" type="button">ON</button>
+      <button id="sm-btn-music-mute" class="mute-btn" aria-label="Music on" title="Music on" aria-pressed="false" type="button">
+        <svg viewBox="0 0 28 24" aria-hidden="true" focusable="false">
+          <path d="M3 9v6h5l6 5V4L8 9H3zm14.5 3c0-2.06-1.17-3.83-2.88-4.7v9.4A5.2 5.2 0 0 0 17.5 12zm3.5 0c0-3.72-2.13-6.92-5.25-8.47v2.4A7.45 7.45 0 0 1 18.7 12a7.45 7.45 0 0 1-2.95 6.07v2.4C18.87 18.92 21 15.72 21 12z"/>
+        </svg>
+      </button>
     </div>
     <div class="menu-actions">
       <button id="btn-play" class="menu-btn" type="button">Play Game</button>
@@ -400,6 +512,7 @@
   <script>
     // (removed) leaderboard and Supabase configuration/functions
 
+    const SHOW_DEBUG_SC_WIDGET = false;
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
   // Render-time zoom (uniform) — apply only on mobile-sized viewports
@@ -487,6 +600,7 @@
       }
       // Keep desktop instructions aligned with canvas left edge and width
       layoutDesktopInstructionsToCanvas();
+      layoutMusicBar();
     }
 
   // Align desktop instructions' left edge with the canvas and match its width
@@ -504,37 +618,96 @@
     // --- Simple SoundCloud music player (hidden iframe) ---
     let scWidget = null;
   const scIframe = document.getElementById('sc-widget');
+  const scDebugWrapEl = document.getElementById('sc-widget-debug-wrap');
+  const musicBarEl = document.getElementById('musicbar');
+  const musicNowPlayingEl = document.querySelector('.music-nowplaying');
   const musicTitleEl = document.getElementById('music-title');
+  const musicTitleTrackEl = document.getElementById('music-title-track');
+  const musicTitlePrimaryEl = document.getElementById('music-title-primary');
+  const musicTitleDuplicateEl = document.getElementById('music-title-duplicate');
+  const btnPrevTrack = document.getElementById('btn-prev-track');
+  const btnNextTrack = document.getElementById('btn-next-track');
+  const playbackControlsEl = document.querySelector('.playback-controls');
+  const topbarSoarLinkEl = document.querySelector('#musicbar .topbar-soar-link');
   let btnMusicMute = document.getElementById('btn-music-mute');
-  let btnSfxMute = document.getElementById('btn-sfx-mute');
   let smBtnMusicMute = document.getElementById('sm-btn-music-mute');
-  let smBtnSfxMute = document.getElementById('sm-btn-sfx-mute');
   let musicMuted = false;
-  let lastMusicVolume = 100; // percent
+  let lastMusicVolume = 20; // percent
+  let currentMusicDisplay = '';
     let scReady = false;
     let desiredPlaying = false; // user's intended state; UI reflects actual state from widget
 
-    function updateMusicUI(isPlaying) {
-      // No play/pause UI anymore; keep title current
-      if (isPlaying) {
-        updateMusicTitle();
+    function layoutMusicBar() {
+      if (!musicBarEl || !musicTitleEl || !playbackControlsEl || !btnMusicMute) return;
+      const gap = parseFloat(getComputedStyle(musicBarEl).columnGap || getComputedStyle(musicBarEl).gap || '0') || 0;
+      const reserved = (
+        playbackControlsEl.offsetWidth +
+        btnMusicMute.offsetWidth +
+        (isMobile ? 0 : (topbarSoarLinkEl?.offsetWidth || 0))
+      );
+      const rowGaps = isMobile ? 2 : 3;
+      const availableForNowPlaying = Math.max(120, musicBarEl.clientWidth - reserved - (gap * rowGaps));
+      const titleGap = 6;
+      const controlsWidth = playbackControlsEl.offsetWidth;
+      const maxTitleWidth = isMobile ? Math.max(56, availableForNowPlaying - controlsWidth - titleGap) : 150;
+      const titleWidth = Math.max(56, Math.min(maxTitleWidth, availableForNowPlaying - controlsWidth - titleGap));
+
+      if (musicNowPlayingEl) {
+        musicNowPlayingEl.style.maxWidth = `${availableForNowPlaying}px`;
       }
+      musicTitleEl.style.maxWidth = `${titleWidth}px`;
+      musicTitleEl.style.width = `${titleWidth}px`;
+    }
+    function refreshMusicTitleMarquee() {
+      if (!musicTitleEl || !musicTitleTrackEl || !musicTitlePrimaryEl || !musicTitleDuplicateEl) return;
+      layoutMusicBar();
+      musicTitleTrackEl.classList.remove('is-scrolling');
+      musicTitleTrackEl.style.animation = 'none';
+      musicTitleTrackEl.style.removeProperty('--marquee-shift');
+      musicTitleTrackEl.style.removeProperty('--marquee-duration');
+      musicTitleTrackEl.style.transform = 'translateX(0)';
+      musicTitleDuplicateEl.style.display = 'none';
+
+      requestAnimationFrame(() => {
+        const visibleWidth = musicTitleEl.clientWidth;
+        const textWidth = musicTitlePrimaryEl.scrollWidth;
+        const gap = 24;
+        const shouldScroll = textWidth > visibleWidth + 8;
+
+        if (!shouldScroll) return;
+
+        musicTitleDuplicateEl.style.display = 'inline-block';
+        const shift = textWidth + gap;
+        const duration = Math.max(8, shift / 18);
+        musicTitleTrackEl.style.setProperty('--marquee-shift', `${shift}px`);
+        musicTitleTrackEl.style.setProperty('--marquee-duration', `${duration}s`);
+        // Force layout so the animation reliably restarts after track/title changes.
+        void musicTitleTrackEl.offsetWidth;
+        musicTitleTrackEl.classList.add('is-scrolling');
+        musicTitleTrackEl.style.animation = `musicMarquee ${duration}s linear infinite`;
+      });
+    }
+    function updateMusicUI(isPlaying) {
+      if (isPlaying) updateMusicTitle();
     }
 
-    function updateMusicTitle() {
+    function updateMusicTitle(forceRefresh = false) {
       try {
         if (scWidget) {
           scWidget.getCurrentSound((sound) => {
-            if (!musicTitleEl) return;
+            if (!musicTitleEl || !musicTitlePrimaryEl || !musicTitleDuplicateEl || !musicTitleTrackEl) return;
             const artist = (sound && sound.user && sound.user.username) ? sound.user.username : '';
             const title = (sound && sound.title) ? sound.title : '';
             let display = '';
             if (artist && title) display = artist + ' - ' + title;
             else display = title || artist;
-            musicTitleEl.textContent = display;
-            if (sound && sound.permalink_url) {
-              musicTitleEl.setAttribute('href', sound.permalink_url);
-            }
+            const changed = forceRefresh || display !== currentMusicDisplay;
+            if (!changed) return;
+
+            currentMusicDisplay = display;
+            musicTitlePrimaryEl.textContent = display;
+            musicTitleDuplicateEl.textContent = display;
+            refreshMusicTitleMarquee();
           });
         }
       } catch(e) {}
@@ -552,26 +725,16 @@
     }
     function updateSpeakerButtonVisual(btnEl, muted) {
       if (!btnEl) return;
-      // muted => show OFF; unmuted => ON
-      // For SFX we treat enabled as ON, disabled as OFF.
-      const on = !muted;
-      btnEl.textContent = on ? 'ON' : 'OFF';
+      btnEl.innerHTML = muted
+        ? '<svg viewBox="0 0 28 24" aria-hidden="true" focusable="false"><path d="M3 9v6h5l6 5V4L8 9H3zm13.5-.5 2.5 2.5 2.5-2.5 1.5 1.5-2.5 2.5 2.5 2.5-1.5 1.5-2.5-2.5-2.5 2.5-1.5-1.5 2.5-2.5-2.5-2.5z"/></svg>'
+        : '<svg viewBox="0 0 28 24" aria-hidden="true" focusable="false"><path d="M3 9v6h5l6 5V4L8 9H3zm14.5 3c0-2.06-1.17-3.83-2.88-4.7v9.4A5.2 5.2 0 0 0 17.5 12zm3.5 0c0-3.72-2.13-6.92-5.25-8.47v2.4A7.45 7.45 0 0 1 18.7 12a7.45 7.45 0 0 1-2.95 6.07v2.4C18.87 18.92 21 15.72 21 12z"/></svg>';
       btnEl.setAttribute('aria-pressed', muted ? 'true' : 'false');
-      btnEl.title = on ? 'On' : 'Off';
-      btnEl.setAttribute('aria-label', btnEl.title + ' state');
+      btnEl.title = muted ? 'Music off' : 'Music on';
+      btnEl.setAttribute('aria-label', muted ? 'Music off' : 'Music on');
     }
     function updateMusicMuteUI() {
       updateSpeakerButtonVisual(btnMusicMute, musicMuted);
       updateSpeakerButtonVisual(smBtnMusicMute, musicMuted);
-    }
-    function setSfxEnabled(on) {
-      sfxEnabled = !!on;
-      updateSfxMuteUI();
-    }
-    function updateSfxMuteUI() {
-      const muted = !sfxEnabled;
-      updateSpeakerButtonVisual(btnSfxMute, muted);
-      updateSpeakerButtonVisual(smBtnSfxMute, muted);
     }
 
     function syncMusicStateFromWidget() {
@@ -582,8 +745,35 @@
         });
       } catch(e) {}
     }
+    function syncSoundCloudDebugWidget() {
+      if (!scIframe || !scDebugWrapEl) return;
+      if (SHOW_DEBUG_SC_WIDGET) {
+        scDebugWrapEl.classList.add('is-visible');
+        scDebugWrapEl.setAttribute('aria-hidden', 'false');
+        if (!scDebugWrapEl.contains(scIframe)) {
+          scDebugWrapEl.appendChild(scIframe);
+        }
+        scIframe.style.position = 'static';
+        scIframe.style.left = 'auto';
+        scIframe.style.width = 'min(640px, calc(100vw - 24px))';
+        scIframe.style.height = 'var(--debug-widget-height)';
+        scIframe.style.border = '0';
+      } else {
+        scDebugWrapEl.classList.remove('is-visible');
+        scDebugWrapEl.setAttribute('aria-hidden', 'true');
+        if (!document.body.contains(scIframe)) {
+          document.body.appendChild(scIframe);
+        }
+        scIframe.style.position = 'absolute';
+        scIframe.style.left = '-9999px';
+        scIframe.style.width = '0';
+        scIframe.style.height = '0';
+        scIframe.style.border = '0';
+      }
+    }
     function initMusic() {
       if (!window.SC || !scIframe) return;
+      syncSoundCloudDebugWidget();
       // Ensure we have fresh references before wiring events
       refreshAudioButtonRefs();
       // Gate Play button while music not ready
@@ -597,39 +787,61 @@
         // Ensure we start paused by default
         try { scWidget.pause(); } catch(e) {}
         desiredPlaying = false;
-        // Update title and UI
-        updateMusicTitle();
+        // Set initial volume to configured default
+        try { scWidget.setVolume(lastMusicVolume); } catch(e) {}
+      // Update title and UI
+      layoutMusicBar();
+        updateMusicTitle(true);
         syncMusicStateFromWidget();
         // Enable Play now that music metadata available
         enablePlayBtn();
       });
 
       // Reflect actual play/pause events from the widget
-      scWidget.bind(SC.Widget.Events.PLAY, () => { updateMusicUI(true); });
-      scWidget.bind(SC.Widget.Events.PAUSE, () => updateMusicUI(false));
+      scWidget.bind(SC.Widget.Events.PLAY, () => {
+        desiredPlaying = true;
+        updateMusicUI(true);
+        updateMusicTitle(true);
+      });
+      scWidget.bind(SC.Widget.Events.PAUSE, () => {
+        desiredPlaying = false;
+        updateMusicUI(false);
+      });
 
-      // Loop the same track when it finishes
       scWidget.bind(SC.Widget.Events.FINISH, () => {
-        try {
-          scWidget.seekTo(0);
-          if (desiredPlaying) scWidget.play();
-          else updateMusicUI(false);
-        } catch(e) {}
+        setTimeout(() => {
+          updateMusicTitle(true);
+          syncMusicStateFromWidget();
+        }, 250);
       });
 
       // Wire mute buttons (top bar and start menu)
       const wire = (el, fn) => { el && el.addEventListener('click', fn); };
+      wire(btnPrevTrack, () => {
+        if (!scReady || !scWidget) return;
+        desiredPlaying = true;
+        try { scWidget.prev(); } catch(e) {}
+        setTimeout(() => {
+          updateMusicTitle(true);
+          syncMusicStateFromWidget();
+        }, 250);
+      });
+      wire(btnNextTrack, () => {
+        if (!scReady || !scWidget) return;
+        desiredPlaying = true;
+        try { scWidget.next(); } catch(e) {}
+        setTimeout(() => {
+          updateMusicTitle(true);
+          syncMusicStateFromWidget();
+        }, 250);
+      });
       wire(btnMusicMute, () => setMusicMuted(!musicMuted));
       wire(smBtnMusicMute, () => setMusicMuted(!musicMuted));
-      wire(btnSfxMute, () => { setSfxEnabled(!sfxEnabled); if (sfxEnabled) beep(520, 70, 'square', 0.03); });
-      wire(smBtnSfxMute, () => { setSfxEnabled(!sfxEnabled); if (sfxEnabled) beep(520, 70, 'square', 0.03); });
     }
 
     function refreshAudioButtonRefs() {
       btnMusicMute = document.getElementById('btn-music-mute');
-      btnSfxMute = document.getElementById('btn-sfx-mute');
       smBtnMusicMute = document.getElementById('sm-btn-music-mute');
-      smBtnSfxMute = document.getElementById('sm-btn-sfx-mute');
     }
     // Setup desktop vs mobile UI elements (controls vs instructions)
     function setupInputUI() {
@@ -857,7 +1069,6 @@
     // Basic AudioContext SFX
     let audioCtx = null;
     let audioUnlocked = false;
-    let sfxEnabled = true; // toggled by Start Menu
     function ensureAudio() {
       if (!audioCtx) {
         try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; }
@@ -871,7 +1082,6 @@
       audioUnlocked = true;
     }
     function beep(freq = 440, durMs = 100, type = "sine", gain = 0.05) {
-      if (!sfxEnabled) return;
       ensureAudio();
       if (!audioCtx) return;
       if (audioCtx.state === 'suspended') {
@@ -1680,7 +1890,6 @@
   showStartMenu();
       // Initialize topbar mute buttons UI
       refreshAudioButtonRefs();
-      updateSfxMuteUI?.();
       updateMusicMuteUI?.();
       requestAnimationFrame(frame);
     }
@@ -1692,6 +1901,9 @@
         setupInputUI();
       }
       sizeCanvasToViewport();
+      layoutMusicBar();
+      refreshMusicTitleMarquee();
+      updateMusicTitle(true);
       if (!isMobile) layoutDesktopInstructionsToCanvas();
     }
     window.addEventListener('resize', refreshUIMode);
@@ -1723,9 +1935,7 @@
       menuActive = true;
   // Defaults on start screen: both unmuted
   setMusicMuted(false);
-  setSfxEnabled(true);
   updateMusicMuteUI();
-  updateSfxMuteUI();
       // Ensure Game Over panel is not visible when the start menu is shown
       hideGameOverMenu();
     }
