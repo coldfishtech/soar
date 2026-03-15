@@ -1462,6 +1462,7 @@
     // Basic AudioContext SFX
     let audioCtx = null;
     let audioUnlocked = false;
+    const SFX_MASTER_VOLUME = 0.7;
     function ensureAudio() {
       if (!audioCtx) {
         try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; }
@@ -1483,7 +1484,7 @@
       const osc = audioCtx.createOscillator();
       const g = audioCtx.createGain();
       osc.type = type; osc.frequency.value = freq;
-      g.gain.value = gain;
+      g.gain.value = gain * SFX_MASTER_VOLUME;
       osc.connect(g); g.connect(audioCtx.destination);
       const now = audioCtx.currentTime;
       osc.start(now);
