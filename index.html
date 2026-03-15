@@ -29,12 +29,27 @@
       /* Disable vertical dragging, allow only horizontal gestures */
       touch-action: pan-x;
     }
+    #titleStack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      flex: 0 0 auto;
+    }
     #titleImage {
       width: 200px; /* 50% of previous 400px */
       max-width: 45vw; /* scale cap proportionally */
       height: auto;
       image-rendering: pixelated;
-      margin-bottom: 8px;
+      margin-bottom: 0;
+      -webkit-user-drag: none;
+      user-select: none;
+    }
+    #subtitleImage {
+      width: 400px;
+      max-width: 90vw;
+      height: auto;
+      image-rendering: pixelated;
       -webkit-user-drag: none;
       user-select: none;
     }
@@ -263,8 +278,10 @@
       #topbar, #controls { width: 100%; max-width: 100%; box-sizing: border-box; }
       /* Place title and musicbar side-by-side on mobile */
       #topbar { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  #titleStack { align-items: flex-start; }
   /* Half-size title image (50% of previous mobile width) */
   #titleImage { width: 100px; max-width: 20vw; margin-bottom: 0; }
+  #subtitleImage { width: 200px; max-width: 40vw; }
       /* Right-align music player so its right edge aligns with canvas right edge */
   #musicbar { margin-left: auto; margin-bottom: 0; box-sizing: border-box; padding: 0 0; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
   .music-nowplaying { flex: 1 1 100%; order: 0; }
@@ -317,7 +334,8 @@
       color: #000;
       font-size: 14px;
       text-align: center;
-      display: flex; flex-direction: column; align-items: stretch;
+      flex-direction: column;
+      align-items: stretch;
       box-sizing: border-box;
     }
     /* Add generous vertical spacing between each start menu section */
@@ -340,30 +358,113 @@
       color: #000;
       font-size: 14px;
       text-align: center;
-      display: flex; flex-direction: column; align-items: stretch;
+      flex-direction: column;
+      align-items: stretch;
       box-sizing: border-box;
+    }
+    /* Leaderboard panel reuses the same frame/chrome as game over */
+    #leaderboardPanel {
+      position: fixed;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      border-radius: 0;
+      width: min(340px, 80vw);
+      padding: 16px 24px;
+      display: none;
+      z-index: 12;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #000;
+      font-size: 13px;
+      text-align: center;
+      flex-direction: column;
+      align-items: stretch;
+      box-sizing: border-box;
+      max-height: min(72vh, 520px);
     }
     /* Increase vertical spacing between elements */
     #gameOver > * + * { margin-top: 22px; }
+    #leaderboardPanel > * + * { margin-top: 12px; }
     #gameOver h2 { margin: 6px 0 10px 0; font-family: Arial Black, Arial, Helvetica, sans-serif; font-weight: 900; font-size: inherit; text-align: center; }
   #gameOver .score { text-align: center; font-weight: 900; font-size: 52px; margin: 10px 0 4px 0; }
   #gameOver .best { text-align: center; font-weight: 700; font-size: 14px; margin: 6px 0 12px 0; }
+  #gameOver .rank { text-align: center; font-weight: 700; font-size: 14px; margin: 6px 0 12px 0; }
+  #gameOver .rank.is-loading { display: flex; align-items: center; justify-content: center; }
+  #gameOver .rank .rank-loading-dots {
+    display: inline-block;
+    width: 3ch;
+    text-align: left;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
     /* Shared helpers for divider, labels and top image */
   #gameOver .menu-hr { height: 1px; background: linear-gradient(90deg, rgba(0,0,0,0), rgba(0,0,0,0.35), rgba(0,0,0,0)); border: 0; margin: 18px 4px; }
+  #leaderboardPanel .menu-hr { height: 1px; background: linear-gradient(90deg, rgba(0,0,0,0), rgba(0,0,0,0.35), rgba(0,0,0,0)); border: 0; margin: 8px 4px; }
     #gameOver .row-label { font-weight: 700; font-size: inherit; }
+    #leaderboardPanel .row-label { font-weight: 700; font-size: inherit; }
+    #leaderboardPanel .row-subtitle { margin: 0; font-size: 12px; opacity: 0.8; text-align: center; }
     #gameOver .go-sprite { width: 64px; height: auto; image-rendering: pixelated; display: block; margin: 0 auto 6px auto; }
-    .menu-actions { display: flex; justify-content: center; }
-  #gameOver .menu-actions { margin-top: 48px; }
+    .menu-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  #gameOver .menu-actions { margin-top: 10px; flex-direction: column; gap: 18px; align-items: center; }
+  #gameOver #btn-leaderboard.menu-btn {
+    min-width: 0;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #000;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  #leaderboardPanel .menu-actions { margin-top: 8px; }
     /* Reuse row layout if needed within game over */
     #gameOver .menu-row { display: flex; align-items: center; justify-content: space-between; margin: 12px 0; width: 100%; box-sizing: border-box; }
     #startMenu h2 { margin: 6px 0 10px 0; font-family: Arial Black, Arial, Helvetica, sans-serif; font-weight: 900; font-size: inherit; }
     /* Start menu copy and divider */
-    #startMenu .menu-blurb, #startMenu .menu-note { margin: 10px 4px; line-height: 1.3; font-size: inherit; }
+    #startMenu .menu-blurb { margin: 10px 4px; line-height: 1.3; font-size: inherit; }
+    #startMenu .menu-note { margin: 0 4px; line-height: 1.3; font-size: inherit; }
   #startMenu .menu-note a { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; text-decoration: none; }
   #startMenu .menu-note a svg { width: 12px; height: 12px; display: block; fill: #000; }
     #startMenu .menu-hr { height: 1px; background: linear-gradient(90deg, rgba(0,0,0,0), rgba(0,0,0,0.35), rgba(0,0,0,0)); border: 0; margin: 12px 4px; }
-    /* Start menu logo (half the size of the top one which is 200px) */
-  #startMenu .menu-logo { width: 100px; max-width: 40vw; height: auto; image-rendering: pixelated; display: block; margin: 0 auto 40px auto; }
+    /* Start menu brand stack (title + subtitle) */
+  #startMenu .menu-brand { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 0 auto; width: 100%; }
+  #startMenu .menu-brand + .menu-note { margin-top: 6px; }
+  #startMenu .menu-logo { width: 100px; max-width: 40vw; height: auto; image-rendering: pixelated; display: block; margin: 0; }
+  #startMenu .menu-subtitle { width: 200px; max-width: 100%; height: auto; image-rendering: pixelated; display: block; }
+  #startMenu .menu-note + .menu-welcome { margin-top: 14px; }
+  #startMenu .menu-welcome { display: none; flex-direction: column; align-items: center; gap: 14px; margin-top: 6px; }
+  #startMenu .menu-welcome-text { margin: 0; font-size: 12px; line-height: 1.35; text-align: center; }
+  #startMenu .menu-welcome-username { display: inline-block; margin-left: 8px; font-weight: 700; font-size: 1.5em; line-height: 1; }
+  #startMenu .menu-link-btn {
+    border: none;
+    background: transparent;
+    color: #000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    padding: 2px 4px;
+  }
+  #startMenu .menu-profile { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+  #startMenu .menu-field { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; }
+  #startMenu .menu-field label { font-size: 12px; font-weight: 700; opacity: 0.85; }
+  #startMenu .menu-field input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #b0b7c2;
+    background: rgba(255,255,255,0.75);
+    color: #000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    outline: none;
+  }
+  #startMenu .menu-field input:focus { border-color: #7f8ea3; }
+  #startMenu .menu-error { min-height: 14px; margin: 2px 0 0; font-size: 11px; color: #7a2222; text-align: left; }
+  #startMenu #btn-profile-back { display: none; align-self: flex-start; margin-top: 2px; }
     #startMenu .row-label { font-weight: 700; font-size: inherit; }
   .menu-row { display: flex; align-items: center; justify-content: space-between; margin: 12px 0; width: 100%; box-sizing: border-box; }
     .menu-btn, .menu-toggle {
@@ -398,6 +499,29 @@
   /* Large gap above the Play button */
   #startMenu .menu-actions { margin-top: 48px; }
     .menu-actions .menu-btn { min-width: 140px; }
+  #leaderboardPanel .menu-actions .menu-btn { min-width: 110px; }
+  #leaderboardRows {
+    width: 100%;
+    overflow: auto;
+    overflow-x: hidden;
+    max-height: min(42vh, 320px);
+    border: none;
+    background: transparent;
+  }
+  .lb-row {
+    display: grid;
+    grid-template-columns: 34px 1fr 58px;
+    gap: 10px;
+    align-items: center;
+    padding: 6px 8px;
+    font-size: 12px;
+    text-align: left;
+    min-width: 0;
+  }
+  .lb-row + .lb-row { border-top: 1px solid rgba(0,0,0,0.08); }
+  .lb-rank { text-align: right; }
+  .lb-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-score { text-align: right; font-weight: 700; }
 
     /* Fantasy RPG panel styling */
     .rpg-panel { color: #2b1b0e; font-family: Georgia, "Times New Roman", serif; text-shadow: 0 1px 0 rgba(255,255,255,0.35); }
@@ -413,7 +537,10 @@
 <body>
   <div id="sc-widget-debug-wrap" aria-hidden="true"></div>
   <div id="topbar">
-  <img id="titleImage" src="soar_title.png" alt="SSOAR Title" />
+  <div id="titleStack">
+    <img id="titleImage" src="soar_title.png" alt="SSOAR Title" />
+    <img id="subtitleImage" src="soar_subtitle.png" alt="SOAR Subtitle" />
+  </div>
     <div id="musicbar" aria-label="Music Player">
       <div class="music-nowplaying">
     <span id="music-title" aria-live="polite">
@@ -461,21 +588,30 @@
   <div id="startMenuBackdrop" aria-hidden="true"></div>
   <img id="startMenuFrame" src="resources/frame/frame.png" alt="Frame" aria-hidden="true"/>
   <div id="startMenu" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
-    <img src="soar_title.png" alt="SOAR" class="menu-logo" />
-    <p class="menu-blurb">So heaven waits, whether in wrath or grace, for one who rises, only by embrace.</p>
+    <div class="menu-brand">
+      <img src="soar_title.png" alt="SOAR" class="menu-logo" />
+      <img src="soar_subtitle.png" alt="SOAR Subtitle" class="menu-subtitle" />
+    </div>
   <p class="menu-note"><a id="event-link" href="https://www.instagram.com/soar.wav/" target="_blank" rel="noopener" aria-label="Instagram: soar.wav">
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path d="M7 2C4.24 2 2 4.24 2 7v10c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V7c0-2.76-2.24-5-5-5H7zm0 2h10c1.66 0 3 1.34 3 3v10c0 1.66-1.34 3-3 3H7c-1.66 0-3-1.34-3-3V7c0-1.66 1.34-3 3-3zm11 1a1 1 0 100 2 1 1 0 000-2zM12 7a5 5 0 100 10 5 5 0 000-10zm0 2a3 3 0 110 6 3 3 0 010-6z"/>
     </svg>
   </a></p>
-    <div class="menu-hr"></div>
-    <div class="menu-row">
-      <span class="row-label">Music</span>
-      <button id="sm-btn-music-mute" class="mute-btn" aria-label="Music on" title="Music on" aria-pressed="false" type="button">
-        <svg viewBox="0 0 28 24" aria-hidden="true" focusable="false">
-          <path d="M3 9v6h5l6 5V4L8 9H3zm14.5 3c0-2.06-1.17-3.83-2.88-4.7v9.4A5.2 5.2 0 0 0 17.5 12zm3.5 0c0-3.72-2.13-6.92-5.25-8.47v2.4A7.45 7.45 0 0 1 18.7 12a7.45 7.45 0 0 1-2.95 6.07v2.4C18.87 18.92 21 15.72 21 12z"/>
-        </svg>
-      </button>
+    <div id="welcomeBack" class="menu-welcome">
+      <p id="welcomeBackText" class="menu-welcome-text"></p>
+      <button id="btn-new-profile" class="menu-link-btn" type="button">Create New Profile</button>
+    </div>
+    <div id="profileForm" class="menu-profile">
+      <div class="menu-field">
+        <label for="input-username">Username *</label>
+        <input id="input-username" type="text" maxlength="20" autocomplete="nickname" placeholder="Enter username" />
+      </div>
+      <div class="menu-field">
+        <label for="input-instagram">Instagram</label>
+        <input id="input-instagram" type="text" maxlength="30" autocomplete="off" placeholder="@yourhandle" />
+      </div>
+      <button id="btn-profile-back" class="menu-link-btn" type="button">Back</button>
+      <p id="profileError" class="menu-error" role="status" aria-live="polite"></p>
     </div>
     <div class="menu-actions">
       <button id="btn-play" class="menu-btn" type="button">Play Game</button>
@@ -486,13 +622,24 @@
   <div id="gameOver" role="dialog" aria-modal="true" aria-labelledby="goTitle">
     <div class="row-label">Height Reached</div>
     <div class="score" id="goScore">0</div>
-    <div class="best" id="goBest">Record: 0</div>
+    <div class="rank" id="goRank">Rank: --</div>
     <div class="menu-hr"></div>
     <img src="resources/sprites/player/Falling_R.png" alt="Falling" class="go-sprite" />
     <div class="menu-actions">
+      <button id="btn-leaderboard" class="menu-btn" type="button">Leaderboard</button>
       <button id="btn-restart" class="menu-btn" type="button">Play Again</button>
     </div>
     <div class="menu-instruction desktop-only">or press space</div>
+  </div>
+  <div id="leaderboardPanel" role="dialog" aria-modal="true" aria-labelledby="leaderboardTitle">
+    <div class="row-label" id="leaderboardTitle">Leaderboard</div>
+    <p class="row-subtitle">Who hath risen highest?</p>
+    <div class="menu-hr"></div>
+    <div id="leaderboardRows" role="table" aria-label="Leaderboard runs">
+    </div>
+    <div class="menu-actions">
+      <button id="btn-leaderboard-close" class="menu-btn" type="button">Back</button>
+    </div>
   </div>
   
   <!-- (removed) name entry overlay -->
@@ -509,10 +656,256 @@
       <img src="resources/buttons/R_button_68_68.png" alt="Jump">
     </button>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // (removed) leaderboard and Supabase configuration/functions
 
     const SHOW_DEBUG_SC_WIDGET = false;
+    const LEADERBOARD_PROFILE_KEY = 'leaderboard_profile_id';
+    const LEADERBOARD_USERNAME_KEY = 'leaderboard_username';
+    const LEADERBOARD_INSTAGRAM_KEY = 'leaderboard_instagram';
+    const LEADERBOARD_PAGE_LIMIT = 50;
+    const SOAR_BUILD_VERSION = String(window.SOAR_BUILD_VERSION || 'web-1').trim();
+    const DEFAULT_SOAR_SUPABASE_URL = 'https://ztjepxrqlhsduutodvka.supabase.co';
+    // This key is only used as client API key. Authenticated requests use anonymous user JWT access tokens.
+    const DEFAULT_SOAR_SUPABASE_ANON_KEY = 'sb_publishable_MjgwgjRRtSKJhX_TFrmHkQ_9pa0qeII';
+    const SOAR_SUPABASE_URL = (
+      window.SOAR_SUPABASE_URL ||
+      localStorage.getItem('soar_supabase_url') ||
+      DEFAULT_SOAR_SUPABASE_URL
+    ).trim();
+    const SOAR_SUPABASE_ANON_KEY = (
+      window.SOAR_SUPABASE_ANON_KEY ||
+      localStorage.getItem('soar_supabase_anon_key') ||
+      DEFAULT_SOAR_SUPABASE_ANON_KEY
+    ).trim();
+    const LEADERBOARD_API_BASE = SOAR_SUPABASE_URL
+      ? SOAR_SUPABASE_URL.replace(/\/+$/, '') + '/functions/v1'
+      : '';
+    let leaderboardProfileId = localStorage.getItem(LEADERBOARD_PROFILE_KEY) || '';
+    let leaderboardUsername = localStorage.getItem(LEADERBOARD_USERNAME_KEY) || '';
+    let leaderboardInstagram = localStorage.getItem(LEADERBOARD_INSTAGRAM_KEY) || '';
+    let leaderboardAccessToken = '';
+    let leaderboardAuthInitPromise = null;
+    let leaderboardSupabaseClient = null;
+    let leaderboardRunSession = null;
+    let leaderboardRunStartedAtMs = Date.now();
+
+    function leaderboardConfigured() {
+      return !!(LEADERBOARD_API_BASE && SOAR_SUPABASE_ANON_KEY && SOAR_SUPABASE_URL);
+    }
+    function leaderboardSupabaseClientAvailable() {
+      return !!(window.supabase && typeof window.supabase.createClient === 'function');
+    }
+    function getLeaderboardSupabaseClient() {
+      if (!leaderboardSupabaseClientAvailable()) return null;
+      if (!leaderboardSupabaseClient) {
+        leaderboardSupabaseClient = window.supabase.createClient(SOAR_SUPABASE_URL, SOAR_SUPABASE_ANON_KEY, {
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+        });
+      }
+      return leaderboardSupabaseClient;
+    }
+    async function ensureLeaderboardAuthSession() {
+      if (!leaderboardConfigured()) return '';
+      if (!leaderboardSupabaseClientAvailable()) throw new Error('Supabase auth client not loaded.');
+      if (leaderboardAuthInitPromise) return leaderboardAuthInitPromise;
+      leaderboardAuthInitPromise = (async () => {
+        const client = getLeaderboardSupabaseClient();
+        if (!client) throw new Error('Supabase auth client unavailable.');
+        const sessionRes = await client.auth.getSession();
+        if (sessionRes.error) throw sessionRes.error;
+        let session = sessionRes.data ? sessionRes.data.session : null;
+        if (!session) {
+          const signInRes = await client.auth.signInAnonymously();
+          if (signInRes.error) throw signInRes.error;
+          session = signInRes.data ? signInRes.data.session : null;
+        }
+        if (!session || !session.access_token) throw new Error('Anonymous auth session unavailable.');
+        leaderboardAccessToken = String(session.access_token);
+        return leaderboardAccessToken;
+      })();
+      try {
+        return await leaderboardAuthInitPromise;
+      } finally {
+        leaderboardAuthInitPromise = null;
+      }
+    }
+    function normalizeUsername(raw) {
+      const cleaned = String(raw || '')
+        .replace(/[^A-Za-z0-9._ \-]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 20);
+      return cleaned;
+    }
+    function normalizeInstagram(raw) {
+      const cleaned = String(raw || '')
+        .trim()
+        .replace(/^@+/, '')
+        .replace(/[^A-Za-z0-9._]/g, '')
+        .slice(0, 30);
+      return cleaned || '';
+    }
+    function validateUsername(username) {
+      return username.length >= 3 && username.length <= 20;
+    }
+    function persistLeaderboardIdentity(usernameRaw, instagramRaw) {
+      const username = normalizeUsername(usernameRaw);
+      const instagram = normalizeInstagram(instagramRaw);
+      leaderboardUsername = username;
+      leaderboardInstagram = instagram;
+      localStorage.setItem(LEADERBOARD_USERNAME_KEY, leaderboardUsername);
+      localStorage.setItem(LEADERBOARD_INSTAGRAM_KEY, leaderboardInstagram);
+      return { username, instagram };
+    }
+    function clearLeaderboardRunSession() {
+      leaderboardRunSession = null;
+      leaderboardRunStartedAtMs = Date.now();
+    }
+    async function leaderboardRequest(path, method = 'GET', payload = null) {
+      if (!leaderboardConfigured()) throw new Error('Leaderboard is not configured.');
+      const accessToken = await ensureLeaderboardAuthSession();
+      const res = await fetch(`${LEADERBOARD_API_BASE}/${path}`, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SOAR_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: payload ? JSON.stringify(payload) : undefined
+      });
+      let data = null;
+      try { data = await res.json(); } catch (e) { data = null; }
+      if (!res.ok) {
+        const msg = (data && (data.error || data.message)) || `Leaderboard request failed (${res.status}).`;
+        throw new Error(msg);
+      }
+      return data || {};
+    }
+    async function createLeaderboardProfile(usernameRaw, instagramRaw) {
+      const username = normalizeUsername(usernameRaw);
+      const instagram = normalizeInstagram(instagramRaw);
+      if (!validateUsername(username)) {
+        throw new Error('Username must be 3-20 characters.');
+      }
+      const data = await leaderboardRequest('leaderboard-profile', 'POST', {
+        username,
+        instagram_username: instagram || null
+      });
+      if (!data.profile_id) throw new Error('Profile creation failed.');
+      leaderboardProfileId = String(data.profile_id);
+      const savedUsername = String(data.username || username);
+      const savedInstagram = String(data.instagram_username || '');
+      persistLeaderboardIdentity(savedUsername, savedInstagram);
+      localStorage.setItem(LEADERBOARD_PROFILE_KEY, leaderboardProfileId);
+      return {
+        profileId: leaderboardProfileId,
+        username: leaderboardUsername,
+        instagram: leaderboardInstagram
+      };
+    }
+    async function ensureLeaderboardProfile(usernameRaw, instagramRaw) {
+      const username = normalizeUsername(usernameRaw);
+      const instagram = normalizeInstagram(instagramRaw);
+      if (!validateUsername(username)) {
+        throw new Error('Username must be 3-20 characters.');
+      }
+      if (
+        leaderboardProfileId &&
+        leaderboardUsername === username &&
+        leaderboardInstagram === instagram
+      ) {
+        persistLeaderboardIdentity(username, instagram);
+        return {
+          profileId: leaderboardProfileId,
+          username: leaderboardUsername,
+          instagram: leaderboardInstagram
+        };
+      }
+      return createLeaderboardProfile(username, instagram);
+    }
+    async function startLeaderboardRunSession() {
+      clearLeaderboardRunSession();
+      if (!leaderboardConfigured() || !leaderboardProfileId) return null;
+      const data = await leaderboardRequest('leaderboard-run-start', 'POST', {
+        profile_id: leaderboardProfileId,
+        build_version: SOAR_BUILD_VERSION
+      });
+      if (!data.run_id || !data.session_token) {
+        throw new Error('Run session start failed.');
+      }
+      leaderboardRunSession = {
+        runId: String(data.run_id),
+        token: String(data.session_token),
+        expiresAt: data.expires_at ? String(data.expires_at) : null,
+        buildVersion: SOAR_BUILD_VERSION
+      };
+      return leaderboardRunSession;
+    }
+    async function submitLeaderboardRun(runScore) {
+      if (!leaderboardConfigured()) throw new Error('Leaderboard is not configured.');
+      if (!leaderboardRunSession || !leaderboardRunSession.runId || !leaderboardRunSession.token) {
+        throw new Error('Run session not ready.');
+      }
+      const activeSession = leaderboardRunSession;
+      leaderboardRunSession = null; // one-time token by contract
+      const scoreInt = Math.max(0, Math.floor(Number(runScore) || 0));
+      const durationMs = Math.max(0, Math.floor(Date.now() - leaderboardRunStartedAtMs));
+      return leaderboardRequest('leaderboard-submit', 'POST', {
+        run_id: activeSession.runId,
+        session_token: activeSession.token,
+        score: scoreInt,
+        duration_ms: durationMs,
+        build_version: SOAR_BUILD_VERSION
+      });
+    }
+    async function fetchLeaderboardRuns(limit = LEADERBOARD_PAGE_LIMIT) {
+      const safeLimit = Math.max(1, Math.min(Number(limit) || LEADERBOARD_PAGE_LIMIT, LEADERBOARD_PAGE_LIMIT));
+      return leaderboardRequest(`leaderboard-runs?limit=${safeLimit}&offset=0`, 'GET');
+    }
+    async function beginLeaderboardRunSession() {
+      leaderboardRunStartedAtMs = Date.now();
+      clearLeaderboardRunSession();
+      if (!leaderboardConfigured() || !leaderboardProfileId) return;
+      try {
+        await startLeaderboardRunSession();
+      } catch (e) {
+        // If ownership changed after auth migration, auto-create a replacement profile once.
+        const msg = (e && e.message) ? String(e.message) : '';
+        const recoverable = /profile/i.test(msg) || /player session/i.test(msg);
+        if (recoverable && leaderboardUsername) {
+          try {
+            await createLeaderboardProfile(leaderboardUsername, leaderboardInstagram);
+            await startLeaderboardRunSession();
+            return;
+          } catch (_e2) {
+            // Keep gameplay non-blocking if anti-cheat setup fails.
+          }
+        }
+        leaderboardRunSession = null;
+      }
+    }
+    function startNewLeaderboardProfile() {
+      leaderboardProfileId = '';
+      localStorage.removeItem(LEADERBOARD_PROFILE_KEY);
+      clearLeaderboardRunSession();
+    }
+    window.leaderboardConfigured = leaderboardConfigured;
+    window.ensureLeaderboardAuthSession = ensureLeaderboardAuthSession;
+    window.ensureLeaderboardProfile = ensureLeaderboardProfile;
+    window.beginLeaderboardRunSession = beginLeaderboardRunSession;
+    window.submitLeaderboardRun = submitLeaderboardRun;
+    window.fetchLeaderboardRuns = fetchLeaderboardRuns;
+    window.startNewLeaderboardProfile = startNewLeaderboardProfile;
+    window.getLeaderboardProfileDefaults = () => ({
+      username: leaderboardUsername,
+      instagram: leaderboardInstagram
+    });
+    if (leaderboardConfigured()) {
+      ensureLeaderboardAuthSession().catch(() => {});
+    }
+
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
   // Render-time zoom (uniform) — apply only on mobile-sized viewports
@@ -531,6 +924,7 @@
   // when space allows, but never exceed available viewport height.
   const MIN_PLAY_HEIGHT = 300;
   const titleImgEl = document.getElementById('titleImage');
+  const subtitleImgEl = document.getElementById('subtitleImage');
   const topbarEl = document.getElementById('topbar');
     const controlsEl = document.getElementById('controls');
   const desktopInstrEl = document.getElementById('desktop-instructions');
@@ -579,8 +973,11 @@
         if (isSmall) {
           // Let mobile CSS control the title size
           titleImgEl.style.width = '';
+          if (subtitleImgEl) subtitleImgEl.style.width = '';
         } else {
-          titleImgEl.style.width = Math.round(targetW / 3) + 'px';
+          const titleW = Math.round(targetW / 3);
+          titleImgEl.style.width = titleW + 'px';
+          if (subtitleImgEl) subtitleImgEl.style.width = Math.round(titleW * 2) + 'px';
         }
       }
 
@@ -630,7 +1027,6 @@
   const playbackControlsEl = document.querySelector('.playback-controls');
   const topbarSoarLinkEl = document.querySelector('#musicbar .topbar-soar-link');
   let btnMusicMute = document.getElementById('btn-music-mute');
-  let smBtnMusicMute = document.getElementById('sm-btn-music-mute');
   let musicMuted = false;
   let lastMusicVolume = 20; // percent
   let currentMusicDisplay = '';
@@ -734,7 +1130,6 @@
     }
     function updateMusicMuteUI() {
       updateSpeakerButtonVisual(btnMusicMute, musicMuted);
-      updateSpeakerButtonVisual(smBtnMusicMute, musicMuted);
     }
 
     function syncMusicStateFromWidget() {
@@ -815,7 +1210,7 @@
         }, 250);
       });
 
-      // Wire mute buttons (top bar and start menu)
+      // Wire playback controls
       const wire = (el, fn) => { el && el.addEventListener('click', fn); };
       wire(btnPrevTrack, () => {
         if (!scReady || !scWidget) return;
@@ -836,12 +1231,10 @@
         }, 250);
       });
       wire(btnMusicMute, () => setMusicMuted(!musicMuted));
-      wire(smBtnMusicMute, () => setMusicMuted(!musicMuted));
     }
 
     function refreshAudioButtonRefs() {
       btnMusicMute = document.getElementById('btn-music-mute');
-      smBtnMusicMute = document.getElementById('sm-btn-music-mute');
     }
     // Setup desktop vs mobile UI elements (controls vs instructions)
     function setupInputUI() {
@@ -1001,7 +1394,7 @@
   let standingOnCloud = false; // frame flag for rendering micro-overlap
   
     // -------- background tower --------
-  const TOWER_SRC = 'resources/tower/tower.png';
+  const TOWER_SRC = 'resources/witch/witch.png';
   let towerImg = null;
   // Draw at native resolution; no runtime scaling
   const TOWER_PARALLAX = 0.6;   // unused for pixel-anchored tower
@@ -1177,9 +1570,8 @@
           // Ignore space until enabled
           return;
         }
-        hideStartMenu();
-        setMusicEnabled(true);
-        restartGame();
+        // Reuse Play button flow so profile validation/submission logic is identical.
+        if (playBtn) playBtn.click();
         // Prevent immediate jump on first frame after starting via Space
         keys["Space"] = false;
         spaceHeld = false;
@@ -1427,10 +1819,25 @@
 
     // (removed) player name management
 
-  // (removed) leaderboard functions
+    // (removed) leaderboard functions
 
     // Draw name prompt overlay
     // (removed) name prompt drawing and submission
+
+    async function submitRunAndUpdateRank(runScore) {
+      if (!window.setGameOverRank) return;
+      window.setGameOverRank(null, { loading: true });
+      if (!leaderboardConfigured()) {
+        window.setGameOverRank(null, { unavailable: true });
+        return;
+      }
+      try {
+        const data = await submitLeaderboardRun(runScore);
+        window.setGameOverRank(Number(data.current_run_rank) || null, {});
+      } catch (e) {
+        window.setGameOverRank(null, { error: true });
+      }
+    }
 
     function restartGame() {
       ground.x = 0;
@@ -1456,6 +1863,7 @@
       initClouds();
       gameOverSFXPlayed = false;
       hideGameOverMenu();
+      beginLeaderboardRunSession();
     }
 
   // Difficulty ramps with score thresholds (every 1000 points), without levels UI
@@ -1620,8 +2028,9 @@
           bestScore = score;
           try { localStorage.setItem("cloudjump_best", String(bestScore)); } catch(e) {}
         }
-        // (removed) leaderboard submission and loading
-        showGameOverMenu();
+        const runScore = Math.floor(score);
+        showGameOverMenu(runScore);
+        submitRunAndUpdateRank(runScore);
       }
 
       if (milestonePopup) {
@@ -1805,17 +2214,21 @@
         ctx.save();
         const tw = towerImg.width;  // native width
         const th = towerImg.height; // native height
-        const tx = Math.round((canvas.width - tw) / 2);
+        // Fit background image to full canvas width while preserving aspect ratio.
+        const drawW = canvas.width;
+        const scale = drawW / tw;
+        const drawH = Math.round(th * scale);
+        const tx = 0;
         // Progress: 0 -> 1 as score goes 0 -> TOWER_HIDE_SCORE
         const p = Math.max(0, Math.min(1, (score || 0) / TOWER_HIDE_SCORE));
-        // Move downward by up to exactly one full tower height so it slides out through the bottom
-        const offsetDown = Math.round(p * th);
-        const y = Math.round(canvas.height - th + offsetDown);
+        // Move downward by up to exactly one full drawn height so it slides out through the bottom
+        const offsetDown = Math.round(p * drawH);
+        const y = Math.round(canvas.height - drawH + offsetDown);
         ctx.globalAlpha = 0.25; // 25% opacity
         // Subtle distance blur for the background tower only
-        ctx.filter = 'blur(3px)';
+        ctx.filter = 'blur(5px)';
         if (y < canvas.height) {
-          ctx.drawImage(towerImg, 0, 0, towerImg.width, towerImg.height, tx, y, tw, th);
+          ctx.drawImage(towerImg, 0, 0, towerImg.width, towerImg.height, tx, y, drawW, drawH);
         }
         // Reset draw state
         ctx.filter = 'none';
@@ -1922,20 +2335,181 @@
     const startMenuBackdrop = document.getElementById('startMenuBackdrop');
   const startMenuFrameImg = document.getElementById('startMenuFrame');
     const playBtn = document.getElementById('btn-play');
+    const profileFormEl = document.getElementById('profileForm');
+    const usernameInput = document.getElementById('input-username');
+    const instagramInput = document.getElementById('input-instagram');
+    const profileErrorEl = document.getElementById('profileError');
+    const welcomeBackEl = document.getElementById('welcomeBack');
+    const welcomeBackTextEl = document.getElementById('welcomeBackText');
+    const newProfileBtn = document.getElementById('btn-new-profile');
+    const profileBackBtn = document.getElementById('btn-profile-back');
     // Game Over elements
     const gameOverPanel = document.getElementById('gameOver');
     const goScoreEl = document.getElementById('goScore');
-    const goBestEl = document.getElementById('goBest');
+    const goRankEl = document.getElementById('goRank');
     const restartBtn = document.getElementById('btn-restart');
+    const leaderboardBtn = document.getElementById('btn-leaderboard');
+    const leaderboardPanel = document.getElementById('leaderboardPanel');
+    const leaderboardRowsEl = document.getElementById('leaderboardRows');
+    const leaderboardCloseBtn = document.getElementById('btn-leaderboard-close');
+    let playInFlight = false;
+    let leaderboardLoading = false;
+    let forceNewProfileFlow = false;
+    let rankLoadingTimer = null;
+    let rankLoadingDotCount = 1;
+
+    function setProfileError(message = '') {
+      if (profileErrorEl) profileErrorEl.textContent = message;
+    }
+    function setStartProfileMode(defaults = null) {
+      const hasSavedName = !!(defaults && defaults.username);
+      const showWelcome = hasSavedName && !forceNewProfileFlow;
+      if (welcomeBackEl) welcomeBackEl.style.display = showWelcome ? 'flex' : 'none';
+      if (profileFormEl) profileFormEl.style.display = showWelcome ? 'none' : 'flex';
+      if (profileBackBtn) profileBackBtn.style.display = (hasSavedName && forceNewProfileFlow) ? 'inline-flex' : 'none';
+      if (welcomeBackTextEl && hasSavedName) {
+        welcomeBackTextEl.textContent = 'Welcome back! ';
+        const usernameSpan = document.createElement('span');
+        usernameSpan.className = 'menu-welcome-username';
+        usernameSpan.textContent = String(defaults.username || '');
+        welcomeBackTextEl.appendChild(usernameSpan);
+      }
+    }
+    function stopRankLoadingAnimation() {
+      if (rankLoadingTimer) {
+        clearInterval(rankLoadingTimer);
+        rankLoadingTimer = null;
+      }
+      rankLoadingDotCount = 1;
+    }
+    function setRankLoadingDots(count) {
+      if (!goRankEl) return;
+      const dotCount = Math.max(1, Math.min(3, Math.floor(count) || 1));
+      const dots = ".".repeat(dotCount) + "\u00A0".repeat(3 - dotCount);
+      let dotsEl = goRankEl.querySelector('.rank-loading-dots');
+      if (!dotsEl) {
+        goRankEl.classList.add('is-loading');
+        goRankEl.innerHTML = '<span class="rank-loading-prefix">Rank: </span><span class="rank-loading-dots"></span>';
+        dotsEl = goRankEl.querySelector('.rank-loading-dots');
+      }
+      if (dotsEl) dotsEl.textContent = dots;
+    }
+    function startRankLoadingAnimation() {
+      if (!goRankEl) return;
+      stopRankLoadingAnimation();
+      setRankLoadingDots(1);
+      rankLoadingTimer = setInterval(() => {
+        rankLoadingDotCount = (rankLoadingDotCount % 3) + 1;
+        setRankLoadingDots(rankLoadingDotCount);
+      }, 220);
+    }
+    function setGameOverRank(rank, state = {}) {
+      if (!goRankEl) return;
+      if (state.loading) {
+        startRankLoadingAnimation();
+        return;
+      }
+      stopRankLoadingAnimation();
+      goRankEl.classList.remove('is-loading');
+      if (state.unavailable) {
+        goRankEl.textContent = 'Rank: --';
+        return;
+      }
+      if (state.error) {
+        goRankEl.textContent = 'Rank: --';
+        return;
+      }
+      if (typeof rank === 'number' && Number.isFinite(rank) && rank > 0) {
+        goRankEl.textContent = `Rank: #${Math.floor(rank)}`;
+      } else {
+        goRankEl.textContent = 'Rank: --';
+      }
+    }
+    window.setGameOverRank = setGameOverRank;
+
+    function resetLeaderboardRows() {
+      if (!leaderboardRowsEl) return;
+      const rows = leaderboardRowsEl.querySelectorAll('.lb-row');
+      rows.forEach((row) => row.remove());
+    }
+    function appendLeaderboardRows(rows) {
+      if (!leaderboardRowsEl || !Array.isArray(rows)) return;
+      rows.forEach((row) => {
+        const rank = Number(row.rank) || 0;
+        const username = String(row.username || '-');
+        const runScore = Number(row.score) || 0;
+        const el = document.createElement('div');
+        el.className = 'lb-row';
+        el.setAttribute('role', 'row');
+        const rankEl = document.createElement('span');
+        rankEl.className = 'lb-rank';
+        rankEl.textContent = String(rank);
+        const nameEl = document.createElement('span');
+        nameEl.className = 'lb-name';
+        nameEl.textContent = username;
+        const scoreEl = document.createElement('span');
+        scoreEl.className = 'lb-score';
+        scoreEl.textContent = String(runScore);
+        el.appendChild(rankEl);
+        el.appendChild(nameEl);
+        el.appendChild(scoreEl);
+        leaderboardRowsEl.appendChild(el);
+      });
+    }
+    async function loadLeaderboard() {
+      if (!leaderboardRowsEl || leaderboardLoading) return;
+      resetLeaderboardRows();
+      if (!window.leaderboardConfigured || !window.leaderboardConfigured()) {
+        return;
+      }
+      leaderboardLoading = true;
+      try {
+        const data = await window.fetchLeaderboardRuns(LEADERBOARD_PAGE_LIMIT);
+        const rows = Array.isArray(data.rows) ? data.rows : [];
+        appendLeaderboardRows(rows);
+      } catch (e) {
+        console.warn('Failed to load leaderboard:', e);
+      } finally {
+        leaderboardLoading = false;
+      }
+    }
+    function showLeaderboardMenu() {
+      if (!leaderboardPanel) return;
+      if (gameOverPanel) gameOverPanel.style.display = 'none';
+      if (startMenuBackdrop) startMenuBackdrop.style.display = 'block';
+      if (startMenuFrameImg) startMenuFrameImg.style.display = 'block';
+      leaderboardPanel.style.display = 'flex';
+      loadLeaderboard();
+    }
+    function hideLeaderboardMenu(returnToGameOver = false) {
+      if (!leaderboardPanel) return;
+      leaderboardPanel.style.display = 'none';
+      if (returnToGameOver && !menuActive && !gameRunning && gameOverPanel) {
+        gameOverPanel.style.display = 'flex';
+        return;
+      }
+      const gameOverVisible = !!(gameOverPanel && gameOverPanel.style.display !== 'none');
+      if (!menuActive && !gameOverVisible) {
+        if (startMenuBackdrop) startMenuBackdrop.style.display = 'none';
+        if (startMenuFrameImg) startMenuFrameImg.style.display = 'none';
+      }
+    }
 
     function showStartMenu() {
       if (startMenuBackdrop) startMenuBackdrop.style.display = 'block';
       if (startMenuFrameImg) startMenuFrameImg.style.display = 'block';
-      if (startMenu) startMenu.style.display = 'block';
+      if (startMenu) startMenu.style.display = 'flex';
+      const defaults = window.getLeaderboardProfileDefaults ? window.getLeaderboardProfileDefaults() : null;
+      setStartProfileMode(defaults);
       menuActive = true;
+  hideLeaderboardMenu(false);
   // Defaults on start screen: both unmuted
-  setMusicMuted(false);
+      setMusicMuted(false);
   updateMusicMuteUI();
+      setProfileError('');
+      if (window.leaderboardConfigured && window.leaderboardConfigured() && window.ensureLeaderboardAuthSession) {
+        window.ensureLeaderboardAuthSession().catch(() => {});
+      }
       // Ensure Game Over panel is not visible when the start menu is shown
       hideGameOverMenu();
     }
@@ -1946,17 +2520,19 @@
       menuActive = false;
     }
 
-    function showGameOverMenu() {
+    function showGameOverMenu(scoreValue = score) {
+      hideLeaderboardMenu(false);
       if (startMenuBackdrop) startMenuBackdrop.style.display = 'block';
       if (startMenuFrameImg) startMenuFrameImg.style.display = 'block';
-      if (goScoreEl) goScoreEl.textContent = String(Math.floor(score));
-      if (goBestEl) goBestEl.textContent = 'Record: ' + Math.floor(bestScore);
-      if (gameOverPanel) gameOverPanel.style.display = 'block';
+      if (goScoreEl) goScoreEl.textContent = String(Math.floor(scoreValue));
+      setGameOverRank(null, {});
+      if (gameOverPanel) gameOverPanel.style.display = 'flex';
     }
     function hideGameOverMenu() {
+      stopRankLoadingAnimation();
       if (gameOverPanel) gameOverPanel.style.display = 'none';
       // If start menu isn't shown, hide frame/backdrop too
-      if (!menuActive) {
+      if (!menuActive && (!leaderboardPanel || leaderboardPanel.style.display === 'none')) {
         if (startMenuBackdrop) startMenuBackdrop.style.display = 'none';
         if (startMenuFrameImg) startMenuFrameImg.style.display = 'none';
       }
@@ -1973,9 +2549,72 @@
       setTimeout(syncMusicStateFromWidget, 200);
     }
 
+    if (usernameInput || instagramInput || profileFormEl || welcomeBackEl) {
+      const defaults = window.getLeaderboardProfileDefaults ? window.getLeaderboardProfileDefaults() : null;
+      if (defaults) {
+        if (usernameInput && defaults.username) usernameInput.value = defaults.username;
+        if (instagramInput && defaults.instagram) instagramInput.value = defaults.instagram;
+      }
+      setStartProfileMode(defaults);
+      usernameInput?.addEventListener('input', () => setProfileError(''));
+      instagramInput?.addEventListener('input', () => setProfileError(''));
+    }
+    if (newProfileBtn) {
+      newProfileBtn.addEventListener('click', () => {
+        forceNewProfileFlow = true;
+        if (usernameInput) usernameInput.value = '';
+        if (instagramInput) instagramInput.value = '';
+        setProfileError('');
+        const defaults = window.getLeaderboardProfileDefaults ? window.getLeaderboardProfileDefaults() : null;
+        setStartProfileMode(defaults);
+        usernameInput?.focus();
+      });
+    }
+    if (profileBackBtn) {
+      profileBackBtn.addEventListener('click', () => {
+        forceNewProfileFlow = false;
+        const defaults = window.getLeaderboardProfileDefaults ? window.getLeaderboardProfileDefaults() : null;
+        if (usernameInput) usernameInput.value = defaults && defaults.username ? defaults.username : '';
+        if (instagramInput) instagramInput.value = defaults && defaults.instagram ? defaults.instagram : '';
+        setProfileError('');
+        setStartProfileMode(defaults);
+      });
+    }
+
     if (playBtn) {
-      playBtn.addEventListener('click', () => {
+      playBtn.addEventListener('click', async () => {
         if (playBtn.disabled) return; // gated until music ready
+        if (playInFlight) return;
+        setProfileError('');
+        const usernameRaw = usernameInput ? usernameInput.value : '';
+        const instagramRaw = instagramInput ? instagramInput.value : '';
+        const normalizedUsername = normalizeUsername(usernameRaw);
+        const normalizedInstagram = normalizeInstagram(instagramRaw);
+        if (!validateUsername(normalizedUsername)) {
+          setProfileError('Username must be 3-20 characters.');
+          return;
+        }
+        if (usernameInput) usernameInput.value = normalizedUsername;
+        if (instagramInput) instagramInput.value = normalizedInstagram;
+        persistLeaderboardIdentity(normalizedUsername, normalizedInstagram);
+        if (window.leaderboardConfigured && window.leaderboardConfigured()) {
+          playInFlight = true;
+          try {
+            if (window.ensureLeaderboardAuthSession) {
+              await window.ensureLeaderboardAuthSession();
+            }
+            if (forceNewProfileFlow && window.startNewLeaderboardProfile) {
+              window.startNewLeaderboardProfile();
+            }
+            await window.ensureLeaderboardProfile(normalizedUsername, normalizedInstagram);
+          } catch (e) {
+            // Fail-safe: keep gameplay available even if leaderboard/auth is down.
+            console.warn('Leaderboard setup failed:', e);
+            setProfileError('Leaderboard unavailable. Starting game without rank tracking.');
+          }
+          playInFlight = false;
+        }
+        forceNewProfileFlow = false;
         hideStartMenu();
         // Auto-start music on game start
         setMusicEnabled(true);
@@ -2000,7 +2639,18 @@
     if (restartBtn) {
       restartBtn.addEventListener('click', () => {
         hideGameOverMenu();
+        hideLeaderboardMenu(false);
         restartGame();
+      });
+    }
+    if (leaderboardBtn) {
+      leaderboardBtn.addEventListener('click', () => {
+        showLeaderboardMenu();
+      });
+    }
+    if (leaderboardCloseBtn) {
+      leaderboardCloseBtn.addEventListener('click', () => {
+        hideLeaderboardMenu(true);
       });
     }
   </script>
