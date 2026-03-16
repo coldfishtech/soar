@@ -559,6 +559,11 @@
               <path d="M7 6h2v12H7zM18 6v12l-8-6z"/>
             </svg>
           </button>
+          <button id="btn-play-pause" class="transport-btn" aria-label="Play music" title="Play music" aria-pressed="false" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M8 6l10 6-10 6z"/>
+            </svg>
+          </button>
           <button id="btn-next-track" class="transport-btn" aria-label="Next track" title="Next track" type="button">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <path d="M15 6h2v12h-2zM7 6l8 6-8 6z"/>
@@ -1027,6 +1032,7 @@
   const musicTitlePrimaryEl = document.getElementById('music-title-primary');
   const musicTitleDuplicateEl = document.getElementById('music-title-duplicate');
   const btnPrevTrack = document.getElementById('btn-prev-track');
+  const btnPlayPause = document.getElementById('btn-play-pause');
   const btnNextTrack = document.getElementById('btn-next-track');
   const playbackControlsEl = document.querySelector('.playback-controls');
   const topbarSoarLinkEl = document.querySelector('#musicbar .topbar-soar-link');
@@ -1088,7 +1094,17 @@
       });
     }
     function updateMusicUI(isPlaying) {
+      updatePlayPauseButtonVisual(!!isPlaying);
       if (isPlaying) updateMusicTitle();
+    }
+    function updatePlayPauseButtonVisual(isPlaying) {
+      if (!btnPlayPause) return;
+      btnPlayPause.innerHTML = isPlaying
+        ? '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 6h4v12H7zM13 6h4v12h-4z"/></svg>'
+        : '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 6l10 6-10 6z"/></svg>';
+      btnPlayPause.setAttribute('aria-pressed', isPlaying ? 'true' : 'false');
+      btnPlayPause.title = isPlaying ? 'Pause music' : 'Play music';
+      btnPlayPause.setAttribute('aria-label', isPlaying ? 'Pause music' : 'Play music');
     }
 
     function updateMusicTitle(forceRefresh = false) {
@@ -1140,7 +1156,9 @@
       if (!scWidget) return;
       try {
         scWidget.isPaused((paused) => {
-          updateMusicUI(!paused);
+          const isPlaying = !paused;
+          desiredPlaying = isPlaying;
+          updateMusicUI(isPlaying);
         });
       } catch(e) {}
     }
@@ -1186,6 +1204,7 @@
         // Ensure we start paused by default
         try { scWidget.pause(); } catch(e) {}
         desiredPlaying = false;
+        updatePlayPauseButtonVisual(false);
         // Set initial volume to configured default
         try { scWidget.setVolume(lastMusicVolume); } catch(e) {}
       // Update title and UI
@@ -1233,6 +1252,23 @@
           updateMusicTitle(true);
           syncMusicStateFromWidget();
         }, 250);
+      });
+      wire(btnPlayPause, () => {
+        if (!scReady || !scWidget) return;
+        try {
+          scWidget.isPaused((paused) => {
+            try {
+              if (paused) {
+                desiredPlaying = true;
+                scWidget.play();
+              } else {
+                desiredPlaying = false;
+                scWidget.pause();
+              }
+            } catch (e) {}
+            setTimeout(syncMusicStateFromWidget, 180);
+          });
+        } catch (e) {}
       });
       wire(btnMusicMute, () => setMusicMuted(!musicMuted));
     }
