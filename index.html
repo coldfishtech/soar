@@ -416,7 +416,17 @@
     text-decoration: underline;
     text-underline-offset: 2px;
   }
-  #leaderboardPanel .menu-actions { margin-top: 8px; }
+  #leaderboardPanel .menu-actions { margin-top: 8px; justify-content: center; }
+  #leaderboardPanel #btn-leaderboard-close.menu-btn {
+    min-width: 0;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #000;
+    font-weight: 400;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
     /* Reuse row layout if needed within game over */
     #gameOver .menu-row { display: flex; align-items: center; justify-content: space-between; margin: 12px 0; width: 100%; box-sizing: border-box; }
     #startMenu h2 { margin: 6px 0 10px 0; font-family: Arial Black, Arial, Helvetica, sans-serif; font-weight: 900; font-size: inherit; }
@@ -508,9 +518,11 @@
     width: 100%;
     overflow: auto;
     overflow-x: hidden;
+    height: min(42vh, 320px);
     max-height: min(42vh, 320px);
     border: none;
     background: transparent;
+    box-sizing: border-box;
   }
   .lb-row {
     display: grid;
@@ -526,6 +538,43 @@
   .lb-rank { text-align: right; }
   .lb-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .lb-score { text-align: right; font-weight: 700; }
+  .lb-state-wrap {
+    width: 100%;
+    min-height: 100%;
+    height: 100%;
+    padding: 14px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 12px;
+    text-align: center;
+  }
+  .lb-state-line {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: center;
+    min-height: 1em;
+  }
+  .lb-loading-dots {
+    display: inline-block;
+    width: 3ch;
+    text-align: left;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  .lb-retry-btn {
+    border: none;
+    background: transparent;
+    color: #000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    padding: 2px 4px;
+  }
 
     /* Fantasy RPG panel styling */
     .rpg-panel { color: #2b1b0e; font-family: Georgia, "Times New Roman", serif; text-shadow: 0 1px 0 rgba(255,255,255,0.35); }
@@ -588,7 +637,7 @@
         scrolling="no"
         frameborder="no"
         style="position:absolute; left:-9999px; width:0; height:0; border:0;"
-        src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/soundcloud%3Aplaylists%3A2032393965%3Fsecret_token%3Ds-iyakQjs72iE&color=%23ff5500&auto_play=false&hide_related=false&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=true">
+        src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fuser-385939006%2Fsets%2Fsoar%2Fs-THGuRV6Rb7I%3Fsi%3D851d5dd891694629a7fdb30cc8f78435%26utm_source%3Dclipboard%26utm_medium%3Dtext%26utm_campaign%3Dsocial_sharing&color=%23ff5500&auto_play=false&hide_related=false&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=true">
       </iframe>
     </div>
   </div>
@@ -2404,6 +2453,8 @@
     const leaderboardCloseBtn = document.getElementById('btn-leaderboard-close');
     let playInFlight = false;
     let leaderboardLoading = false;
+    let leaderboardLoadingTimer = null;
+    let leaderboardLoadingDotCount = 1;
     let forceNewProfileFlow = false;
     let rankLoadingTimer = null;
     let rankLoadingDotCount = 1;
@@ -2526,11 +2577,67 @@
 
     function resetLeaderboardRows() {
       if (!leaderboardRowsEl) return;
-      const rows = leaderboardRowsEl.querySelectorAll('.lb-row');
-      rows.forEach((row) => row.remove());
+      stopLeaderboardLoadingAnimation();
+      leaderboardRowsEl.innerHTML = '';
+    }
+    function stopLeaderboardLoadingAnimation() {
+      if (leaderboardLoadingTimer) {
+        clearInterval(leaderboardLoadingTimer);
+        leaderboardLoadingTimer = null;
+      }
+      leaderboardLoadingDotCount = 1;
+    }
+    function setLeaderboardLoadingDots(count) {
+      if (!leaderboardRowsEl) return;
+      const dotsEl = leaderboardRowsEl.querySelector('.lb-loading-dots');
+      if (!dotsEl) return;
+      const dotCount = Math.max(1, Math.min(3, Math.floor(count) || 1));
+      dotsEl.textContent = ".".repeat(dotCount) + "\u00A0".repeat(3 - dotCount);
+    }
+    function renderLeaderboardLoadingState() {
+      if (!leaderboardRowsEl) return;
+      stopLeaderboardLoadingAnimation();
+      leaderboardRowsEl.innerHTML = (
+        '<div class="lb-state-wrap" role="status" aria-live="polite">' +
+          '<div class="lb-state-line"><span>Loading</span><span class="lb-loading-dots"></span></div>' +
+        '</div>'
+      );
+      setLeaderboardLoadingDots(1);
+      leaderboardLoadingTimer = setInterval(() => {
+        leaderboardLoadingDotCount = (leaderboardLoadingDotCount % 3) + 1;
+        setLeaderboardLoadingDots(leaderboardLoadingDotCount);
+      }, 220);
+    }
+    function renderLeaderboardMessage(message, options = {}) {
+      if (!leaderboardRowsEl) return;
+      stopLeaderboardLoadingAnimation();
+      const wrap = document.createElement('div');
+      wrap.className = 'lb-state-wrap';
+      wrap.setAttribute('role', 'status');
+      wrap.setAttribute('aria-live', 'polite');
+
+      const line = document.createElement('div');
+      line.className = 'lb-state-line';
+      line.textContent = String(message || '');
+      wrap.appendChild(line);
+
+      if (options.retry) {
+        const retryBtn = document.createElement('button');
+        retryBtn.type = 'button';
+        retryBtn.className = 'lb-retry-btn';
+        retryBtn.textContent = 'Retry';
+        retryBtn.addEventListener('click', () => {
+          if (!leaderboardLoading) loadLeaderboard();
+        });
+        wrap.appendChild(retryBtn);
+      }
+
+      leaderboardRowsEl.innerHTML = '';
+      leaderboardRowsEl.appendChild(wrap);
     }
     function appendLeaderboardRows(rows) {
       if (!leaderboardRowsEl || !Array.isArray(rows)) return;
+      stopLeaderboardLoadingAnimation();
       rows.forEach((row) => {
         const rank = Number(row.rank) || 0;
         const username = String(row.username || '-');
@@ -2557,16 +2664,25 @@
       if (!leaderboardRowsEl || leaderboardLoading) return;
       resetLeaderboardRows();
       if (!window.leaderboardConfigured || !window.leaderboardConfigured()) {
+        renderLeaderboardMessage('Leaderboard unavailable.');
         return;
       }
       leaderboardLoading = true;
+      renderLeaderboardLoadingState();
       try {
         const data = await window.fetchLeaderboardRuns(LEADERBOARD_PAGE_LIMIT);
         const rows = Array.isArray(data.rows) ? data.rows : [];
-        appendLeaderboardRows(rows);
+        if (rows.length) {
+          leaderboardRowsEl.innerHTML = '';
+          appendLeaderboardRows(rows);
+        } else {
+          renderLeaderboardMessage('No runs yet.');
+        }
       } catch (e) {
         console.warn('Failed to load leaderboard:', e);
+        renderLeaderboardMessage('Failed to load leaderboard.', { retry: true });
       } finally {
+        stopLeaderboardLoadingAnimation();
         leaderboardLoading = false;
       }
     }
@@ -2580,6 +2696,7 @@
     }
     function hideLeaderboardMenu(returnToGameOver = false) {
       if (!leaderboardPanel) return;
+      stopLeaderboardLoadingAnimation();
       leaderboardPanel.style.display = 'none';
       if (returnToGameOver && !menuActive && !gameRunning && gameOverPanel) {
         gameOverPanel.style.display = 'flex';
