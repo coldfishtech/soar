@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>SSOAR: Touch the Sky</title>
+  <title>SOAR : Chapter II - Break Point</title>
+  <link rel="icon" type="image/png" href="soar_title.png" />
   <script src="https://w.soundcloud.com/player/api.js"></script>
   <style>
     html {
@@ -295,8 +296,6 @@
       /* Hide desktop-only labels on mobile */
       .desktop-only { display: none; }
     }
-
-    /* (removed) name overlay styles */
 
     /* Start menu overlay */
     #startMenuBackdrop {
@@ -700,8 +699,6 @@
     </div>
   </div>
   
-  <!-- (removed) name entry overlay -->
-  
   <!-- Desktop instructions (hidden on mobile) -->
   <div id="desktop-instructions" aria-hidden="true" style="display:none;"></div>
   <div id="controls" aria-label="Game Controls">
@@ -716,8 +713,6 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // (removed) leaderboard and Supabase configuration/functions
-
     const SHOW_DEBUG_SC_WIDGET = false;
     const LEADERBOARD_PROFILE_KEY = 'leaderboard_profile_id';
     const LEADERBOARD_USERNAME_KEY = 'leaderboard_username';
@@ -1161,11 +1156,8 @@
         if (scWidget) {
           scWidget.getCurrentSound((sound) => {
             if (!musicTitleEl || !musicTitlePrimaryEl || !musicTitleDuplicateEl || !musicTitleTrackEl) return;
-            const artist = (sound && sound.user && sound.user.username) ? sound.user.username : '';
             const title = (sound && sound.title) ? sound.title : '';
-            let display = '';
-            if (artist && title) display = artist + ' - ' + title;
-            else display = title || artist;
+            const display = title || '';
             const changed = forceRefresh || display !== currentMusicDisplay;
             if (!changed) return;
 
@@ -1336,7 +1328,7 @@
         controlsEl.style.display = 'none';
         desktopInstrEl.style.display = 'block';
         desktopInstrEl.style.marginTop = '10px';
-        // Requested: Arial bold, 10pt, letter-spacing -25 (interpreted as -0.025em)
+        // Desktop instruction typography
         desktopInstrEl.style.fontFamily = 'Arial, Helvetica, sans-serif';
   desktopInstrEl.style.fontWeight = '400';
         desktopInstrEl.style.fontSize = '10pt';
@@ -1391,7 +1383,7 @@
       walkFrameIndex: 0,
       walkTimer: 0,
       walkFrameDurationBase: 110, // ms at base speed
-      jumpWindupMs: 50, // requested 50ms wind-up
+      jumpWindupMs: 50, // ms
       // async loading of all frames
   async load() {
         const files = {
@@ -1482,12 +1474,11 @@
   let clouds = [];
   let standingOnCloud = false; // frame flag for rendering micro-overlap
   
-    // -------- background tower --------
+    // -------- background image --------
   const TOWER_SRC = 'resources/witch/witch.png';
   let towerImg = null;
-  // Draw at native resolution; no runtime scaling
-  const TOWER_PARALLAX = 0.6;   // unused for pixel-anchored tower
-  // Score at which the tower fully disappears into the bottom edge
+  const TOWER_PARALLAX = 0.6;   // currently unused
+  // Score at which the background fully disappears into the bottom edge
   const TOWER_HIDE_SCORE = 12000;
 
     // -------- difficulty (static) --------
@@ -1502,12 +1493,10 @@
     // restart cooldown (ms)
     let restartCooldown = 0;
 
-  // (removed) leaderboard and player name state
-
   // Track if space is currently held
     let spaceHeld = false;
 
-  // NEW: coyote time & jump buffer (ms)
+  // Coyote time & jump buffer (ms)
   const COYOTE_TIME = 120; // ms
   const JUMP_BUFFER = 100; // ms
   let coyoteTimer = 0;     // counts down when leaving ground
@@ -1595,7 +1584,7 @@
     }
 
     // -------- background gradient (drawn in pixel space) --------
-    let bgOffset = 0; // retained for compatibility; not used by gradient
+    let bgOffset = 0; // retained for compatibility
     function drawScrollingSky() {
       // Draw the sky in pixel coordinates so it always covers the entire canvas
       const w = canvas.width;
@@ -1694,8 +1683,6 @@
         paused = !paused;
       }
     });
-
-    // (removed) canvas-based restart hit-test; now handled by DOM game over dialog
 
     const btnLeft = document.getElementById('btn-left');
   const btnRight = document.getElementById('btn-right');
@@ -1908,13 +1895,6 @@
       controlsEl.addEventListener('lostpointercapture', endWide);
     })();
 
-    // (removed) player name management
-
-    // (removed) leaderboard functions
-
-    // Draw name prompt overlay
-    // (removed) name prompt drawing and submission
-
     async function submitRunAndUpdateRank(runScore) {
       if (!window.setGameOverRank) return;
       window.setGameOverRank(null, { loading: true });
@@ -1942,8 +1922,6 @@
 
   score = 0; gameRunning = true; bgOffset = 0; paused = false;
   MAX_CLOUD_SPACING = 150; BASE_CLOUD_SPEED = 1.2; milestonePopup = null; nextMilestone = 1000;
-
-  // (removed) leaderboard state reset
 
       restartCooldown = 200;
       spaceHeld = false;
@@ -2279,8 +2257,6 @@
       ctx.textBaseline = prevBaseline;
     }
 
-    // (removed) canvas-drawn Game Over; now uses DOM overlay
-
     function getRestartButtonPosition() {
       // Position restart button comfortably below text, without leaderboard
       const isMobileLayout = canvas.height < 600;
@@ -2299,7 +2275,7 @@
       // Draw static sky background covering the entire canvas
       drawScrollingSky();
 
-      // Draw background tower in pixel space (single tall sprite), anchored to canvas bottom and behind ground.
+      // Draw background image in pixel space, anchored to canvas bottom and behind ground.
       // Lower it progressively as score increases; fully disappears into bottom at TOWER_HIDE_SCORE.
       if (towerImg) {
         ctx.save();
@@ -2316,7 +2292,7 @@
         const offsetDown = Math.round(p * drawH);
         const y = Math.round(canvas.height - drawH + offsetDown);
         ctx.globalAlpha = 0.25; // 25% opacity
-        // Subtle distance blur for the background tower only
+        // Subtle distance blur for the background image only
         ctx.filter = 'blur(5px)';
         if (y < canvas.height) {
           ctx.drawImage(towerImg, 0, 0, towerImg.width, towerImg.height, tx, y, drawW, drawH);
@@ -2362,7 +2338,6 @@
         ctx.restore();
       }
 
-  // (removed) canvas-drawn Game Over; DOM overlay handles it now
     }
 
     // -------- loop --------
@@ -2381,7 +2356,7 @@
       setupInputUI();
       // Begin loading player sprites (non-blocking)
       playerAnim.load().catch(() => { /* keep fallback rectangles */ });
-  // Load background tower image
+  // Load background image
   loadImage(TOWER_SRC).then(img => { towerImg = img; }).catch(()=>{});
       
       // Unlock WebAudio on first user interaction so SFX can play even if BGM stays off
@@ -2861,7 +2836,6 @@
       playBtn.disabled = false;
       playBtn.textContent = playBtn.dataset.originalText || 'Play Game';
     }
-    // (removed) start-menu toggle event handlers; speaker buttons handle muting now
     if (restartBtn) {
       restartBtn.addEventListener('click', () => {
         hideGameOverMenu();
