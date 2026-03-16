@@ -663,6 +663,7 @@
     // (removed) leaderboard and Supabase configuration/functions
 
     const SHOW_DEBUG_SC_WIDGET = false;
+    const DEFAULT_VIEWPORT_CONTENT = 'width=device-width, initial-scale=1, viewport-fit=cover';
     const LEADERBOARD_PROFILE_KEY = 'leaderboard_profile_id';
     const LEADERBOARD_USERNAME_KEY = 'leaderboard_username';
     const LEADERBOARD_INSTAGRAM_KEY = 'leaderboard_instagram';
@@ -751,6 +752,23 @@
     }
     function validateUsername(username) {
       return username.length >= 3 && username.length <= 20;
+    }
+    function isIOSDevice() {
+      const ua = navigator.userAgent || '';
+      const platform = navigator.platform || '';
+      return /iP(hone|od|ad)/.test(ua) || (platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1);
+    }
+    function getViewportMeta() {
+      return document.querySelector('meta[name="viewport"]');
+    }
+    async function pulseIOSViewportScaleReset() {
+      const viewportMeta = getViewportMeta();
+      if (!viewportMeta) return;
+      const previous = viewportMeta.getAttribute('content') || DEFAULT_VIEWPORT_CONTENT;
+      const locked = 'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover';
+      if (previous !== locked) viewportMeta.setAttribute('content', locked);
+      await new Promise((resolve) => setTimeout(resolve, 120));
+      viewportMeta.setAttribute('content', previous);
     }
     function persistLeaderboardIdentity(usernameRaw, instagramRaw) {
       const username = normalizeUsername(usernameRaw);
@@ -2385,7 +2403,13 @@
       if (instagramInput && typeof instagramInput.blur === 'function') instagramInput.blur();
       if (activeEl && typeof activeEl.blur === 'function') activeEl.blur();
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      await new Promise((resolve) => setTimeout(resolve, 180));
+      if (isIOSDevice()) {
+        await pulseIOSViewportScaleReset();
+      }
+      await new Promise((resolve) => setTimeout(resolve, 220));
+      if (isIOSDevice() && window.visualViewport && window.visualViewport.scale > 1.01) {
+        await pulseIOSViewportScaleReset();
+      }
       try { window.scrollTo(0, 0); } catch (_err) {}
       if (typeof refreshUIMode === 'function') {
         try { refreshUIMode(); } catch (_err) {}
@@ -2633,6 +2657,12 @@
         forceNewProfileFlow = false;
         await normalizeMobileViewportBeforePlay();
         hideStartMenu();
+        if (typeof refreshUIMode === 'function') {
+          refreshUIMode();
+          setTimeout(() => {
+            try { refreshUIMode(); } catch (_err) {}
+          }, 180);
+        }
         // Auto-start music on game start
         setMusicEnabled(true);
         restartGame();
