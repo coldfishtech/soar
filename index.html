@@ -292,6 +292,8 @@
       #controls { gap: 80px; }
       /* Canvas width will be set via JS; fallback respects body padding */
       canvas { width: 100%; height: auto; }
+      /* iOS auto-zooms focused inputs below ~16px; keep start menu fields at 16px on mobile. */
+      #startMenu .menu-field input { font-size: 16px; }
       /* Hide desktop-only labels on mobile */
       .desktop-only { display: none; }
     }
@@ -2376,6 +2378,19 @@
         welcomeBackTextEl.appendChild(usernameSpan);
       }
     }
+    async function normalizeMobileViewportBeforePlay() {
+      if (!isMobile) return;
+      const activeEl = document.activeElement;
+      if (usernameInput && typeof usernameInput.blur === 'function') usernameInput.blur();
+      if (instagramInput && typeof instagramInput.blur === 'function') instagramInput.blur();
+      if (activeEl && typeof activeEl.blur === 'function') activeEl.blur();
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      await new Promise((resolve) => setTimeout(resolve, 180));
+      try { window.scrollTo(0, 0); } catch (_err) {}
+      if (typeof refreshUIMode === 'function') {
+        try { refreshUIMode(); } catch (_err) {}
+      }
+    }
     function stopRankLoadingAnimation() {
       if (rankLoadingTimer) {
         clearInterval(rankLoadingTimer);
@@ -2616,6 +2631,7 @@
           playInFlight = false;
         }
         forceNewProfileFlow = false;
+        await normalizeMobileViewportBeforePlay();
         hideStartMenu();
         // Auto-start music on game start
         setMusicEnabled(true);
