@@ -636,7 +636,7 @@
         scrolling="no"
         frameborder="no"
         style="position:absolute; left:-9999px; width:0; height:0; border:0;"
-        src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fuser-385939006%2Fsets%2Fsoar%2Fs-THGuRV6Rb7I%3Fsi%3D851d5dd891694629a7fdb30cc8f78435%26utm_source%3Dclipboard%26utm_medium%3Dtext%26utm_campaign%3Dsocial_sharing&color=%23ff5500&auto_play=false&hide_related=false&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=true">
+        src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fapi.soundcloud.com%2Fplaylists%2Fsoundcloud%3Aplaylists%3A2205098693%3Fsecret_token%3Ds-THGuRV6Rb7I&color=%23ff5500&auto_play=false&hide_related=false&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=true">
       </iframe>
     </div>
   </div>
@@ -1096,7 +1096,9 @@
         (isMobile ? 0 : (topbarSoarLinkEl?.offsetWidth || 0))
       );
       const rowGaps = isMobile ? 2 : 3;
-      const availableForNowPlaying = Math.max(120, musicBarEl.clientWidth - reserved - (gap * rowGaps));
+      const availableForNowPlaying = isMobile
+        ? Math.max(120, musicBarEl.clientWidth)
+        : Math.max(120, musicBarEl.clientWidth - reserved - (gap * rowGaps));
       const titleGap = 6;
       const controlsWidth = playbackControlsEl.offsetWidth;
       const maxTitleWidth = isMobile ? Math.max(56, availableForNowPlaying - controlsWidth - titleGap) : 150;
@@ -1104,6 +1106,7 @@
 
       if (musicNowPlayingEl) {
         musicNowPlayingEl.style.maxWidth = `${availableForNowPlaying}px`;
+        musicNowPlayingEl.style.width = isMobile ? '100%' : '';
       }
       musicTitleEl.style.maxWidth = `${titleWidth}px`;
       musicTitleEl.style.width = `${titleWidth}px`;
@@ -1203,6 +1206,38 @@
         });
       } catch(e) {}
     }
+    function loopPlaylistFromStartIfFinishedLastTrack() {
+      if (!scWidget) return;
+      const finalize = () => {
+        setTimeout(() => {
+          updateMusicTitle(true);
+          syncMusicStateFromWidget();
+        }, 250);
+      };
+      try {
+        scWidget.getCurrentSoundIndex((rawIndex) => {
+          try {
+            scWidget.getSounds((sounds) => {
+              const trackList = Array.isArray(sounds) ? sounds : [];
+              const currentIndex = Number(rawIndex);
+              const isLastTrack = Number.isFinite(currentIndex)
+                && trackList.length > 0
+                && currentIndex >= (trackList.length - 1);
+              if (isLastTrack) {
+                desiredPlaying = true;
+                try { scWidget.seekTo(0); } catch (_err) {}
+                try { scWidget.play(); } catch (_err) {}
+              }
+              finalize();
+            });
+          } catch (_err) {
+            finalize();
+          }
+        });
+      } catch (_err) {
+        finalize();
+      }
+    }
     function syncSoundCloudDebugWidget() {
       if (!scIframe || !scDebugWrapEl) return;
       if (SHOW_DEBUG_SC_WIDGET) {
@@ -1268,10 +1303,7 @@
       });
 
       scWidget.bind(SC.Widget.Events.FINISH, () => {
-        setTimeout(() => {
-          updateMusicTitle(true);
-          syncMusicStateFromWidget();
-        }, 250);
+        loopPlaylistFromStartIfFinishedLastTrack();
       });
 
       // Wire playback controls
