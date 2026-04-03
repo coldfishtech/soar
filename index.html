@@ -12,6 +12,11 @@
     }
     :root {
       --debug-widget-height: 166px;
+      --theme-bg: #e7e562;
+      --theme-text: #e73738;
+      --theme-button-bg: #e73738;
+      --theme-button-text: #e7e562;
+      --asset-gray-filter: brightness(0) saturate(100%) invert(74%) sepia(1%) saturate(74%) hue-rotate(5deg) brightness(95%) contrast(88%);
     }
     body {
       margin: 0;
@@ -42,15 +47,17 @@
       max-width: 45vw; /* scale cap proportionally */
       height: auto;
       image-rendering: pixelated;
+      filter: var(--asset-gray-filter);
       margin-bottom: 0;
       -webkit-user-drag: none;
       user-select: none;
     }
     #subtitleImage {
-      width: 400px;
-      max-width: 90vw;
+      width: 40px;
+      max-width: 9vw;
       height: auto;
       image-rendering: pixelated;
+      align-self: flex-end;
       -webkit-user-drag: none;
       user-select: none;
     }
@@ -242,7 +249,7 @@
     clip-path: none;
     display: inline-flex; align-items: center; justify-content: center;
   }
-  .ctrl-arrow img { display: block; image-rendering: pixelated; pointer-events: none; }
+  .ctrl-arrow img { display: block; image-rendering: pixelated; pointer-events: none; filter: var(--asset-gray-filter); }
   /* legacy shape overrides */
   .ctrl-arrow--right, .ctrl-arrow--left { clip-path: none; }
     /* arrow group: tighter spacing and better touch handling */
@@ -263,7 +270,7 @@
       padding: 0;
       display: inline-flex; align-items: center; justify-content: center;
     }
-    .ctrl-btn--jump img { display: block; image-rendering: pixelated; pointer-events: none; }
+    .ctrl-btn--jump img { display: block; image-rendering: pixelated; pointer-events: none; filter: var(--asset-gray-filter); }
     .ctrl-btn:active { filter: brightness(1.15); }
 
     /* Mobile-friendly layout: let elements span full width and canvas fill viewport remainder */
@@ -282,7 +289,7 @@
   #titleStack { align-items: flex-start; }
   /* Half-size title image (50% of previous mobile width) */
   #titleImage { width: 100px; max-width: 20vw; margin-bottom: 0; }
-  #subtitleImage { width: 200px; max-width: 40vw; }
+  #subtitleImage { width: 20px; max-width: 4vw; }
       /* Right-align music player so its right edge aligns with canvas right edge */
   #musicbar { margin-left: auto; margin-bottom: 0; box-sizing: border-box; padding: 0 0; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
   .music-nowplaying { flex: 1 1 100%; order: 0; }
@@ -436,10 +443,10 @@
   #startMenu .menu-note a svg { width: 12px; height: 12px; display: block; fill: #000; }
     #startMenu .menu-hr { height: 1px; background: linear-gradient(90deg, rgba(0,0,0,0), rgba(0,0,0,0.35), rgba(0,0,0,0)); border: 0; margin: 12px 4px; }
     /* Start menu brand stack (title + subtitle) */
-  #startMenu .menu-brand { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 0 auto; width: 100%; }
+  #startMenu .menu-brand { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin: 0 auto; width: fit-content; max-width: 100%; }
   #startMenu .menu-brand + .menu-note { margin-top: 6px; }
-  #startMenu .menu-logo { width: 100px; max-width: 40vw; height: auto; image-rendering: pixelated; display: block; margin: 0; }
-  #startMenu .menu-subtitle { width: 200px; max-width: 100%; height: auto; image-rendering: pixelated; display: block; }
+  #startMenu .menu-logo { width: 100px; max-width: 40vw; height: auto; image-rendering: pixelated; display: block; margin: 0; filter: var(--asset-gray-filter); }
+  #startMenu .menu-subtitle { width: 20px; max-width: 10%; height: auto; image-rendering: pixelated; display: block; align-self: flex-end; }
   #startMenu .menu-note + .menu-welcome { margin-top: 14px; }
   #startMenu .menu-welcome { display: none; flex-direction: column; align-items: center; gap: 14px; margin-top: 6px; }
   #startMenu .menu-welcome-text { margin: 0; font-size: 12px; line-height: 1.35; text-align: center; }
@@ -584,6 +591,49 @@
     .rpg-btn { font-variant: small-caps; letter-spacing: 0.08em; color: #2b1b0e; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
     .rpg-btn:active { filter: none; transform: translateY(0); opacity: 0.8; }
     .rpg-row-label { font-variant: small-caps; letter-spacing: 0.06em; color: #2b1b0e; font-weight: 700; font-size: 12px; }
+
+    /* Theme override */
+    html,
+    body {
+      background: var(--theme-bg) !important;
+      color: var(--theme-text) !important;
+    }
+    #musicbar,
+    #music-title,
+    #musicbar .musicbar-label,
+    #startMenu,
+    #gameOver,
+    #leaderboardPanel,
+    .menu-instruction,
+    .desktop-only {
+      color: var(--theme-text) !important;
+    }
+    #musicbar .topbar-soar-link svg,
+    #startMenu .menu-note a svg {
+      fill: var(--theme-text) !important;
+    }
+    canvas {
+      border-color: var(--theme-text) !important;
+    }
+    button:not(.ctrl-arrow):not(.ctrl-btn--jump) {
+      background: var(--theme-button-bg) !important;
+      color: var(--theme-button-text) !important;
+      border-color: var(--theme-button-bg) !important;
+    }
+    button:not(.ctrl-arrow):not(.ctrl-btn--jump) svg {
+      fill: currentColor !important;
+    }
+    .menu-btn,
+    .menu-toggle,
+    #startMenu .menu-link-btn,
+    #gameOver #btn-leaderboard.menu-btn,
+    #leaderboardPanel #btn-leaderboard-close.menu-btn,
+    .lb-retry-btn {
+      text-decoration: none !important;
+    }
+    .loading-dots span {
+      background: var(--theme-button-text) !important;
+    }
   </style>
 </head>
 <body>
@@ -591,7 +641,7 @@
   <div id="topbar">
   <div id="titleStack">
     <img id="titleImage" src="soar_title.png" alt="SSOAR Title" />
-    <img id="subtitleImage" src="soar_subtitle.png" alt="SOAR Subtitle" />
+    <img id="subtitleImage" src="soar_subtitle_3.png" alt="SOAR Subtitle" />
   </div>
     <div id="musicbar" aria-label="Music Player">
       <div class="music-nowplaying">
@@ -643,11 +693,11 @@
   <canvas id="gameCanvas" width="400" height="600"></canvas>
   <!-- Start Menu Overlay -->
   <div id="startMenuBackdrop" aria-hidden="true"></div>
-  <img id="startMenuFrame" src="resources/frame/frame.png" alt="Frame" aria-hidden="true"/>
+  <img id="startMenuFrame" src="resources/frame/frame_3.png" alt="Frame" aria-hidden="true"/>
   <div id="startMenu" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
     <div class="menu-brand">
       <img src="soar_title.png" alt="SOAR" class="menu-logo" />
-      <img src="soar_subtitle.png" alt="SOAR Subtitle" class="menu-subtitle" />
+      <img src="soar_subtitle_3.png" alt="SOAR Subtitle" class="menu-subtitle" />
     </div>
   <p class="menu-note"><a id="event-link" href="https://www.instagram.com/soar.wav/" target="_blank" rel="noopener" aria-label="Instagram: soar.wav">
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -1030,7 +1080,7 @@
         } else {
           const titleW = Math.round(targetW / 3);
           titleImgEl.style.width = titleW + 'px';
-          if (subtitleImgEl) subtitleImgEl.style.width = Math.round(titleW * 2) + 'px';
+          if (subtitleImgEl) subtitleImgEl.style.width = Math.max(12, Math.round(titleW * 0.2)) + 'px';
         }
       }
 
@@ -1365,7 +1415,7 @@
   desktopInstrEl.style.fontWeight = '400';
         desktopInstrEl.style.fontSize = '10pt';
         desktopInstrEl.style.letterSpacing = '-0.025em';
-  desktopInstrEl.style.color = '#888888';
+  desktopInstrEl.style.color = '#e73738';
         desktopInstrEl.textContent = INSTR_TEXT;
         layoutDesktopInstructionsToCanvas();
         // On desktop, keyboard is the primary input.
@@ -1506,12 +1556,43 @@
   let clouds = [];
   let standingOnCloud = false; // frame flag for rendering micro-overlap
   
-    // -------- background image --------
-  const TOWER_SRC = 'resources/witch/witch.png';
-  let towerImg = null;
-  const TOWER_PARALLAX = 0.6;   // currently unused
-  // Score at which the background fully disappears into the bottom edge
-  const TOWER_HIDE_SCORE = 12000;
+    // -------- background flyers --------
+  const FLYER_SRCS = [
+    'resources/flyer/flyer3_1.png',
+    'resources/flyer/flyer3_2.png',
+    'resources/flyer/flyer3_3.png'
+  ];
+  let flyerImgs = [];
+  let flyerPattern = null;
+  let flyerPatternSize = 512;
+
+  function buildFlyerPattern() {
+    if (!flyerImgs.length) return;
+    const off = document.createElement('canvas');
+    off.width = flyerPatternSize;
+    off.height = flyerPatternSize;
+    const c = off.getContext('2d');
+    if (!c) return;
+    c.clearRect(0, 0, off.width, off.height);
+    // Scatter flyers with random position/scale/rotation, then repeat as a pattern.
+    for (let i = 0; i < 18; i++) {
+      const img = flyerImgs[(Math.random() * flyerImgs.length) | 0];
+      if (!img) continue;
+      const scale = (0.35 + Math.random() * 0.45) * 2;
+      const w = Math.max(88, Math.round(img.width * scale));
+      const h = Math.max(88, Math.round(img.height * scale));
+      const x = Math.round(Math.random() * (off.width + w) - w * 0.5);
+      const y = Math.round(Math.random() * (off.height + h) - h * 0.5);
+      const r = (Math.random() - 0.5) * 0.7;
+      c.save();
+      c.globalAlpha = 0.33;
+      c.translate(x + w / 2, y + h / 2);
+      c.rotate(r);
+      c.drawImage(img, -w / 2, -h / 2, w, h);
+      c.restore();
+    }
+    flyerPattern = ctx.createPattern(off, 'repeat');
+  }
 
     // -------- difficulty (static) --------
   let MAX_CLOUD_SPACING = 150;
@@ -1623,18 +1704,8 @@
       const h = canvas.height;
       const grad = ctx.createLinearGradient(0, 0, 0, h);
       
-      // Progressively blend the bottom color towards white with score
-      // t = 0 at score 0, t = 1 at score >= 10000
-      const t = Math.max(0, Math.min(1, (score || 0) / 10000));
-      const baseR = 0x5b, baseG = 0x86, baseB = 0xaa; // #5b86aa
-      const r = Math.round(baseR + (255 - baseR) * t);
-      const g = Math.round(baseG + (255 - baseG) * t);
-      const b = Math.round(baseB + (255 - baseB) * t);
-      const bottomColor = `rgb(${r},${g},${b})`;
-      
-      // Top (0) -> white, Bottom (1) -> blended bottomColor
-      grad.addColorStop(0, '#ffffff');
-      grad.addColorStop(1, bottomColor);
+      grad.addColorStop(0, '#e7e562');
+      grad.addColorStop(1, '#e7e562');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
     }
@@ -2153,7 +2224,7 @@
     // -------- drawing --------
     function drawCloud(cloud) {
       // Original simple two-rectangle cloud with a single outer stroke around the combined shape
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = "#eeec92";
       ctx.fillRect(cloud.x, cloud.y, cloud.width, cloud.height);
       ctx.fillRect(cloud.x + 4, cloud.y - CLOUD_TOP_RISE, cloud.width - 8, cloud.height);
 
@@ -2169,8 +2240,8 @@
       ctx.lineTo(x + w, y);                // to right edge
       ctx.lineTo(x + w, y + h);            // down to bottom-right
       ctx.closePath();
-      ctx.strokeStyle = "#b0b7c2"; // thin light grey
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#b3b3b2";
+      ctx.lineWidth = 2;
       ctx.stroke();
     }
     // Concrete ground style with cracks texture
@@ -2272,7 +2343,7 @@
       const fontPx = Math.round(fontPt * ptToPx); // ~32px
       const spacingPx = -0.1 * fontPx; // -100 tracking ≈ -0.1em
 
-      ctx.fillStyle = "#000";
+      ctx.fillStyle = "#e73738";
       ctx.textAlign = 'left';
       const prevBaseline = ctx.textBaseline;
       ctx.textBaseline = 'top';
@@ -2307,31 +2378,15 @@
       // Draw static sky background covering the entire canvas
       drawScrollingSky();
 
-      // Draw background image in pixel space, anchored to canvas bottom and behind ground.
-      // Lower it progressively as score increases; fully disappears into bottom at TOWER_HIDE_SCORE.
-      if (towerImg) {
+      // Draw repeated, scattered flyers in the background layer.
+      if (flyerPattern) {
         ctx.save();
-        const tw = towerImg.width;  // native width
-        const th = towerImg.height; // native height
-        // Fit background image to full canvas width while preserving aspect ratio.
-        const drawW = canvas.width;
-        const scale = drawW / tw;
-        const drawH = Math.round(th * scale);
-        const tx = 0;
-        // Progress: 0 -> 1 as score goes 0 -> TOWER_HIDE_SCORE
-        const p = Math.max(0, Math.min(1, (score || 0) / TOWER_HIDE_SCORE));
-        // Move downward by up to exactly one full drawn height so it slides out through the bottom
-        const offsetDown = Math.round(p * drawH);
-        const y = Math.round(canvas.height - drawH + offsetDown);
-        ctx.globalAlpha = 0.25; // 25% opacity
-        // Subtle distance blur for the background image only
-        ctx.filter = 'blur(5px)';
-        if (y < canvas.height) {
-          ctx.drawImage(towerImg, 0, 0, towerImg.width, towerImg.height, tx, y, drawW, drawH);
-        }
-        // Reset draw state
+        const scrollY = Math.floor(((score || 0) * 0.25) % flyerPatternSize);
+        ctx.globalAlpha = 0.4;
         ctx.filter = 'none';
-        ctx.globalAlpha = 1;
+        ctx.translate(0, scrollY);
+        ctx.fillStyle = flyerPattern;
+        ctx.fillRect(0, -flyerPatternSize, canvas.width, canvas.height + flyerPatternSize * 2);
         ctx.restore();
       }
 
@@ -2360,7 +2415,7 @@
       drawHUD();
       if (milestonePopup) {
         ctx.save();
-        ctx.fillStyle = `rgba(0, 0, 0, ${milestonePopup.alpha})`;
+        ctx.fillStyle = `rgba(231, 55, 56, ${milestonePopup.alpha})`;
         ctx.textAlign = "center";
         ctx.textBaseline = "top"; // ensure y coordinate is the top of the text box
         const numberSize = 132;
@@ -2388,8 +2443,13 @@
       setupInputUI();
       // Begin loading player sprites (non-blocking)
       playerAnim.load().catch(() => { /* keep fallback rectangles */ });
-  // Load background image
-  loadImage(TOWER_SRC).then(img => { towerImg = img; }).catch(()=>{});
+  // Load flyer background assets and build repeating collage pattern.
+  Promise.all(FLYER_SRCS.map(src => loadImage(src)))
+    .then((imgs) => {
+      flyerImgs = imgs.filter(Boolean);
+      buildFlyerPattern();
+    })
+    .catch(() => {});
       
       // Unlock WebAudio on first user interaction so SFX can play even if BGM stays off
       const unlockers = ['pointerdown', 'touchstart', 'keydown'];
